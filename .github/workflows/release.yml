@@ -33,7 +33,7 @@ jobs:
           cat module.json
 
       - name: Zip the module
-        run: zip -r module.zip module.json README.md CHANGELOG.md lang scripts styles templates assets
+        run: zip -r module.zip module.json README.md CHANGELOG.md lang scripts styles templates assets packs -x "packs/*/LOCK" "packs/*/LOG" "packs/*/LOG.old"
 
       - name: Attach assets to the release
         env:

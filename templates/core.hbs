@@ -60,6 +60,7 @@
           </div>
           {{#if item.effect}}<p class="effect">{{item.effect}}</p>{{/if}}
           {{#if item.flavor}}<p class="flavor">{{item.flavor}}</p>{{/if}}
+          {{#if item.riderLabel}}<p class="hint rider"><i class="fas fa-arrow-up-right-dots"></i> {{item.riderLabel}}</p>{{/if}}
           {{#if item.description}}<div class="description">{{{item.description}}}</div>{{/if}}
           <div class="actions">
             <button type="button" data-action="open-item" data-item-id="{{item.id}}"><i class="fas fa-book-open"></i> {{localize "WANDERER.App.open"}}</button>
@@ -138,7 +139,7 @@
           <img src="{{img}}" alt="" draggable="false">
           <div class="essence-text">
             <div class="essence-name">{{name}}</div>
-            <div class="sub">{{rarityLabel}} · {{#if days}}{{localize "WANDERER.Picker.essenceDays" days=days}}{{else}}{{localize "WANDERER.Picker.instant"}}{{/if}}</div>
+            <div class="sub">{{rarityLabel}} · {{#if days}}{{localize "WANDERER.Picker.essenceDays" days=days}}{{else}}{{localize "WANDERER.Picker.instant"}}{{/if}}{{#if riderLabel}} · {{riderLabel}}{{/if}}</div>
           </div>
           {{#if @root.isOwner}}
           <button type="button" data-action="slot-essence" data-item-id="{{id}}"><i class="fas fa-arrow-right-to-bracket"></i> {{localize "WANDERER.App.slotEssence"}}</button>
@@ -150,6 +151,7 @@
       {{else}}
       <p class="hint">{{localize "WANDERER.App.noEssences"}}</p>
       {{/if}}
+      <p class="hint small riders{{#if riders.any}} on{{/if}}"><strong>{{localize "WANDERER.App.riders"}}:</strong> {{riders.summary}} <span class="muted">— {{localize "WANDERER.App.ridersHint"}}</span></p>
       <p class="hint small">{{#if essenceInstant}}{{localize "WANDERER.App.instantEssence"}}{{else}}{{localize "WANDERER.App.timedEssence"}}{{/if}}</p>
       {{#if isOwner}}
       <div class="actions">

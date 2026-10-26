@@ -1,21 +1,35 @@
 /**
- * The built-in rune library, transcribed from the Wanderer's rune tables.
+ * The built-in rune library, transcribed from the Wanderer's rune tables, with dnd5e mechanics.
  *
  * Each rune:
- *   id         slug, stable across versions (saved on carved items)
+ *   id         slug, stable across versions (saved on carved items; used for the compendium id)
  *   name       display name
  *   rarity     "uncommon" | "rare" | "veryRare" (any dnd5e rarity is accepted)
  *   effect     rules text
  *   flavor     italic flavor line
  *   requires   (optional) id of a rune that must already be carved
- *   activation (optional) dnd5e activation type for the created item
- *   uses       (optional) { max, per } for limited-use runes ("sr" | "lr" | "day")
- *   effects    (optional) Active Effects applied while the rune is carved
+ *   effects    (optional) Active Effects on the created item. `transfer` defaults to true (a passive
+ *              buff applied while carved); transfer: false effects are offered on the item's chat card.
+ *   item       (optional) dnd5e mechanics for the created item. A rune without `item` is a passive
+ *              feature. Fields: type ("feat" default, or "weapon"), activation, condition, uses {max, per},
+ *              target {value, width, units, type}, range {value, long, units}, duration {value, units},
+ *              actionType, ability, damage [[formula, type]], save {ability, scaling}, chatFlavor,
+ *              weapon {type, properties}, consumeOf (rune id whose uses this rune spends).
+ *
+ * See scripts/items.mjs for how these become item data, and tools/build-packs.mjs for the compendium.
  */
 
 const ADD = 2;      // CONST.ACTIVE_EFFECT_MODES.ADD
 const UPGRADE = 4;  // CONST.ACTIVE_EFFECT_MODES.UPGRADE
 const OVERRIDE = 5; // CONST.ACTIVE_EFFECT_MODES.OVERRIDE
+
+const one = { value: 1, units: "", type: "creature" };
+const ally = { value: 1, units: "", type: "ally" };
+const self = { value: null, units: "", type: "self" };
+const burst = r => ({ value: r, units: "ft", type: "radius" });
+const ft = (value, long = null) => ({ value, long, units: "ft" });
+const selfRange = { value: null, long: null, units: "self" };
+const strSave = { ability: "str", scaling: "str" };
 
 export const BUILTIN_RUNES = [
   // ───────────────────────── Uncommon ─────────────────────────
@@ -32,7 +46,12 @@ export const BUILTIN_RUNES = [
   {
     id: "runic-fist", name: "Runic Fist", rarity: "uncommon",
     effect: "Unarmed strikes are magical and deal 1d8 bludgeoning.",
-    flavor: "Every line carved into a knuckle is a word, and every word is the same word, and the word is enough."
+    flavor: "Every line carved into a knuckle is a word, and every word is the same word, and the word is enough.",
+    item: {
+      type: "weapon", weapon: { type: "natural", properties: ["mgc"] },
+      activation: "action", actionType: "mwak", ability: "str",
+      damage: [["1d8 + @mod", "bludgeoning"]], range: ft(5), target: one
+    }
   },
   {
     id: "recall", name: "Recall", rarity: "uncommon",
@@ -48,13 +67,18 @@ export const BUILTIN_RUNES = [
   {
     id: "lodestone", name: "Lodestone", rarity: "uncommon",
     effect: "Start of his turn: one creature within 10 ft must make a Strength save or be pulled 5 ft toward him.",
-    flavor: "Iron finds the stone. It has never been the other way round."
+    flavor: "Iron finds the stone. It has never been the other way round.",
+    item: {
+      activation: "special", condition: "Start of his turn",
+      range: ft(10), target: one, actionType: "save", save: strSave,
+      chatFlavor: "On a failed Strength save the creature is pulled 5 ft toward him."
+    }
   },
   {
     id: "counterweight", name: "Counterweight", rarity: "uncommon",
     effect: "Reaction: when a creature fails to grapple or shove him, he grapples or shoves it.",
     flavor: "They put their hands on him. That was their mistake. Now they are his.",
-    activation: "reaction"
+    item: { activation: "reaction", condition: "When a creature fails to grapple or shove him", target: one, actionType: "util" }
   },
   {
     id: "deadweight", name: "Deadweight", rarity: "uncommon",
@@ -86,13 +110,17 @@ export const BUILTIN_RUNES = [
     id: "catch", name: "Catch", rarity: "uncommon",
     effect: "Reaction: a creature falling, thrown or knocked past him is caught, takes no fall damage, lands beside him.",
     flavor: "Everything that falls is looking for something solid. Here is something solid.",
-    activation: "reaction"
+    item: { activation: "reaction", condition: "When a creature falls, is thrown or is knocked past him", target: one, actionType: "util" }
   },
   {
     id: "trip-line", name: "Trip Line", rarity: "uncommon",
     effect: "Reaction when a creature leaves his reach: Strength check vs its Dex save; on a win it falls prone instead. Once per turn.",
     flavor: "Leaving is a thing you do with your legs. He would like a word with your legs.",
-    activation: "reaction"
+    item: {
+      activation: "reaction", condition: "When a creature leaves his reach (once per turn)",
+      target: one, actionType: "abil", ability: "str",
+      chatFlavor: "Contested: his Strength check against the target's Dexterity save. On a win it falls prone instead of leaving."
+    }
   },
   {
     id: "builders-eye", name: "Builder's Eye", rarity: "uncommon",
@@ -104,30 +132,54 @@ export const BUILTIN_RUNES = [
   {
     id: "hurl", name: "Hurl", rarity: "rare",
     effect: "Shoving a grappled creature can throw it up to 20 ft: prone, 1d6 per 10 ft, and the same to whatever it lands on.",
-    flavor: "There is an argument for picking things up and an argument for putting them down. He has combined them."
+    flavor: "There is an argument for picking things up and an argument for putting them down. He has combined them.",
+    item: {
+      activation: "special", condition: "When shoving a grappled creature",
+      range: ft(20), target: one, actionType: "other", damage: [["1d6", "bludgeoning"]],
+      chatFlavor: "1d6 per 10 ft thrown, and the same to whatever it lands on. The creature lands prone."
+    }
   },
   {
     id: "capacitor", name: "Capacitor", rarity: "rare",
     effect: "Takes half the damage from spells and magical effects as charge (up to 20; full damage still taken); next melee hit deals the charge as force. Fades end of next turn.",
-    flavor: "Burn him and the fire goes somewhere. It goes into the fist. It comes back out."
+    flavor: "Burn him and the fire goes somewhere. It goes into the fist. It comes back out.",
+    item: {
+      activation: "special", condition: "On his next melee hit after taking damage from a spell or magical effect",
+      target: one, actionType: "other",
+      chatFlavor: "Deals the stored charge (half the magical damage taken, up to 20) as force damage. The charge fades at the end of his next turn."
+    }
   },
   {
     id: "overload", name: "Overload", rarity: "rare",
     effect: "1/LR, first time below half HP: 10 ft burst, Dex save (DC 8 + PB + Con), 5d8 force, half on save. Variant: hits allies too until recarved.",
     flavor: "The lines were cut to hold a great deal. Nobody said what happens when they are asked to hold more.",
-    activation: "special", uses: { max: 1, per: "lr" }
+    item: {
+      activation: "special", condition: "The first time he drops below half his hit points (1/long rest)",
+      uses: { max: 1, per: "lr" }, range: selfRange, target: burst(10),
+      actionType: "save", save: { ability: "dex", scaling: "con" }, damage: [["5d8", "force"]],
+      chatFlavor: "Half damage on a success. Variant: hits allies too until recarved."
+    }
   },
   {
     id: "bulwark", name: "Bulwark", rarity: "rare",
     effect: "Reaction: when an ally within 5 ft is hit, he takes the hit instead.",
     flavor: "A shield that walks, and chooses what it shields, and is not sorry.",
-    activation: "reaction"
+    item: { activation: "reaction", condition: "When an ally within 5 ft is hit", range: ft(5), target: ally, actionType: "util", chatFlavor: "He takes the hit instead." }
   },
   {
     id: "colossus", name: "Colossus", rarity: "rare",
     effect: "Bonus action, 1/LR, 1 min: Large, reach 10 ft, +1d4 melee damage, advantage on Strength checks and saves.",
     flavor: "The makers built him to a size the doors would allow. The doors were a courtesy.",
-    activation: "bonus", uses: { max: 1, per: "lr" }
+    item: { activation: "bonus", uses: { max: 1, per: "lr" }, duration: { value: 1, units: "minute" }, range: selfRange, target: self, actionType: "util" },
+    effects: [{
+      name: "Colossus", transfer: false, duration: { rounds: 10 },
+      changes: [
+        { key: "system.traits.size", mode: OVERRIDE, value: "lg", priority: 20 },
+        { key: "system.bonuses.mwak.damage", mode: ADD, value: "+1d4", priority: 20 },
+        { key: "flags.midi-qol.advantage.ability.check.str", mode: OVERRIDE, value: "1", priority: 20 },
+        { key: "flags.midi-qol.advantage.ability.save.str", mode: OVERRIDE, value: "1", priority: 20 }
+      ]
+    }]
   },
   {
     id: "living-wall", name: "Living Wall", rarity: "rare",
@@ -137,7 +189,12 @@ export const BUILTIN_RUNES = [
   {
     id: "slam", name: "Slam", rarity: "rare",
     effect: "Throwing, shoving or dropping a creature into a wall, floor, object or creature adds 2d6 and can knock it prone.",
-    flavor: "Every surface is an anvil if you are holding the hammer by the throat."
+    flavor: "Every surface is an anvil if you are holding the hammer by the throat.",
+    item: {
+      activation: "special", condition: "When he throws, shoves or drops a creature into a wall, floor, object or creature",
+      target: one, actionType: "other", damage: [["2d6", "bludgeoning"]],
+      chatFlavor: "Added to the impact. The creature may be knocked prone."
+    }
   },
   {
     id: "chain-gang", name: "Chain-Gang", rarity: "rare",
@@ -147,7 +204,11 @@ export const BUILTIN_RUNES = [
   {
     id: "earthbind", name: "Earthbind", rarity: "rare",
     effect: "A grappled flyer loses its flying speed and falls if released aloft; a shoved flyer must save or be knocked 20 ft down.",
-    flavor: "The sky is for those the ground has let go of. He has not let go."
+    flavor: "The sky is for those the ground has let go of. He has not let go.",
+    item: {
+      activation: "special", condition: "When he shoves a flying creature", target: one, actionType: "save", save: strSave,
+      chatFlavor: "On a failure the flyer is knocked 20 ft down. A grappled flyer loses its flying speed and falls if released aloft."
+    }
   },
   {
     id: "spite-core", name: "Spite Core", rarity: "rare",
@@ -157,7 +218,12 @@ export const BUILTIN_RUNES = [
   {
     id: "rally-core", name: "Rally Core", rarity: "rare",
     effect: "On entering rage, allies within 10 ft gain temp HP (PB + Con), and one sentence of his carries over any noise.",
-    flavor: "Old bells were cast to be heard through battle. So, it turns out, was he."
+    flavor: "Old bells were cast to be heard through battle. So, it turns out, was he.",
+    item: {
+      activation: "special", condition: "When he enters rage", range: ft(10), target: burst(10),
+      actionType: "heal", damage: [["@prof + @abilities.con.mod", "temphp"]],
+      chatFlavor: "Allies within 10 ft gain the temporary hit points. One sentence of his carries over any noise."
+    }
   },
   {
     id: "unmaking-hand", name: "Unmaking Hand", rarity: "rare",
@@ -168,28 +234,51 @@ export const BUILTIN_RUNES = [
     id: "fastball", name: "Fastball", rarity: "rare",
     effect: "Action: throw a willing Medium-or-smaller ally up to 30 ft; they land on their feet, may use their reaction for one weapon attack, no fall damage.",
     flavor: "Trust is a short flight and a hard landing. Ask the goblin.",
-    activation: "action"
+    item: {
+      activation: "action", range: ft(30), target: ally, actionType: "util",
+      chatFlavor: "A willing Medium-or-smaller ally is thrown up to 30 ft, lands on their feet, takes no fall damage, and may use their reaction to make one weapon attack."
+    }
   },
   {
     id: "vise", name: "Vise", rarity: "rare",
     effect: "A grappled creature takes bludgeoning equal to his Strength modifier at the start of each of its turns; disadvantage to escape if his size or smaller.",
-    flavor: "It is not a grip. A grip lets go eventually. This is a closing."
+    flavor: "It is not a grip. A grip lets go eventually. This is a closing.",
+    item: {
+      activation: "special", condition: "Start of each grappled creature's turn", target: one,
+      actionType: "other", damage: [["@abilities.str.mod", "bludgeoning"]],
+      chatFlavor: "Creatures his size or smaller have disadvantage on checks to escape."
+    }
   },
   {
     id: "juggernaut", name: "Juggernaut", rarity: "rare",
     effect: "Moving 10 ft straight, he passes through Large-or-smaller creatures; each must save or be shoved aside and knocked prone.",
-    flavor: "The shortest path between two points is a line through everyone standing on it."
+    flavor: "The shortest path between two points is a line through everyone standing on it.",
+    item: {
+      activation: "special", condition: "When he moves 10 ft in a straight line",
+      target: { value: 10, width: 5, units: "ft", type: "line" }, actionType: "save", save: strSave,
+      chatFlavor: "He passes through Large-or-smaller creatures. Each that fails is shoved aside and knocked prone."
+    }
   },
   {
     id: "shockwave", name: "Shockwave", rarity: "rare",
     effect: "Action, 1/short rest: strike the ground; creatures within 10 ft save or fall prone; the area is difficult terrain until end of his next turn.",
     flavor: "He said something to the floor. The floor passed it on.",
-    activation: "action", uses: { max: 1, per: "sr" }
+    item: {
+      activation: "action", uses: { max: 1, per: "sr" }, range: selfRange, target: burst(10),
+      actionType: "save", save: strSave,
+      chatFlavor: "On a failure the creature falls prone. The area is difficult terrain until the end of his next turn."
+    }
   },
   {
     id: "wrecking-yard", name: "Wrecking Yard", rarity: "rare",
     effect: "Throws objects up to Large as improvised weapons: 20/60 ft, 2d8; a Huge creature hit is pushed 5 ft.",
-    flavor: "Carts, statues, the better sort of furniture. The world is full of things that would like to be thrown."
+    flavor: "Carts, statues, the better sort of furniture. The world is full of things that would like to be thrown.",
+    item: {
+      type: "weapon", weapon: { type: "improv", properties: ["mgc", "thr"] },
+      activation: "action", actionType: "rwak", ability: "str",
+      damage: [["2d8 + @mod", "bludgeoning"]], range: ft(20, 60), target: one,
+      chatFlavor: "Throws an object up to Large. A Huge creature hit is pushed 5 ft."
+    }
   },
 
   // ───────────────────────── Very rare ─────────────────────────
@@ -202,19 +291,28 @@ export const BUILTIN_RUNES = [
     id: "unstable-core-ii", name: "Unstable Core II", rarity: "veryRare",
     effect: "Overload becomes 7d8, pushes 10 ft, and he chooses who it hits. Requires Overload.",
     flavor: "What was once a flaw in the carving is now a decision. That is the only difference between a fault and a weapon.",
-    requires: "overload"
+    requires: "overload",
+    item: {
+      activation: "special", condition: "The first time he drops below half his hit points (spends Overload's use)",
+      consumeOf: "overload", range: selfRange, target: burst(10),
+      actionType: "save", save: { ability: "dex", scaling: "con" }, damage: [["7d8", "force"]],
+      chatFlavor: "Pushes 10 ft; he chooses who it hits. Half damage on a success."
+    }
   },
   {
     id: "stillness", name: "Stillness", rarity: "veryRare",
     effect: "Can rage as a reaction when an ally within 30 ft is hit; can hold rage without attacking.",
     flavor: "The old masters did not rage. They decided, and the deciding looked much the same from outside.",
-    activation: "reaction"
+    item: {
+      activation: "reaction", condition: "When an ally within 30 ft is hit", range: ft(30), target: self, actionType: "util",
+      chatFlavor: "He enters rage as a reaction. He can hold rage without attacking."
+    }
   },
   {
     id: "return-of-mind", name: "Return of Mind", rarity: "veryRare",
     effect: "+2 Intelligence (max 22); proficiency in Int and Wis saves. 1/LR, ask the DM one question about his own making and receive a true answer as a memory.",
     flavor: "Not every scar is damage. Some are the places where the writing was, waiting to be read again.",
-    activation: "special", uses: { max: 1, per: "lr" },
+    item: { activation: "special", condition: "Ask the DM one question about his own making (1/long rest)", uses: { max: 1, per: "lr" }, target: self, actionType: "util" },
     effects: [{
       name: "Return of Mind",
       changes: [
@@ -228,13 +326,20 @@ export const BUILTIN_RUNES = [
     id: "pile-driver", name: "Pile Driver", rarity: "veryRare",
     effect: "Action, 1/short rest: leap 20 ft with a grappled creature and come down on it — both take fall damage (he takes half); it lands prone, stunned until end of its next turn on a failed Con save.",
     flavor: "Up is a short trip. Down is a longer conversation.",
-    activation: "action", uses: { max: 1, per: "sr" }
+    item: {
+      activation: "action", uses: { max: 1, per: "sr" }, range: ft(20), target: one,
+      actionType: "save", save: { ability: "con", scaling: "str" }, damage: [["2d6", "bludgeoning"]],
+      chatFlavor: "Both take the fall damage (he takes half). The target lands prone, and is stunned until the end of its next turn on a failed Constitution save."
+    }
   },
   {
     id: "vault-door", name: "Vault Door", rarity: "veryRare",
     effect: "Action: brace in a gap up to 10 ft wide; nothing Huge or smaller passes by any means but teleportation until he moves or falls.",
     flavor: "There are doors with locks and doors with guards. He is a third kind.",
-    activation: "action"
+    item: {
+      activation: "action", duration: { value: null, units: "spec" }, range: selfRange, target: { value: 10, units: "ft", type: "space" }, actionType: "util",
+      chatFlavor: "Braced in a gap up to 10 ft wide. Nothing Huge or smaller passes by any means but teleportation until he moves or falls."
+    }
   },
   {
     id: "anvil", name: "Anvil", rarity: "veryRare",
@@ -245,11 +350,20 @@ export const BUILTIN_RUNES = [
     id: "kinetic-lock", name: "Kinetic Lock", rarity: "veryRare",
     effect: "Reaction, 1/short rest: a creature within 30 ft starting to move must save or have speed 0 until end of its turn and be pulled 10 ft toward him.",
     flavor: "Motion is borrowed. He has decided it is time to collect.",
-    activation: "reaction", uses: { max: 1, per: "sr" }
+    item: {
+      activation: "reaction", condition: "When a creature within 30 ft starts to move", uses: { max: 1, per: "sr" },
+      range: ft(30), target: one, actionType: "save", save: strSave,
+      chatFlavor: "On a failure its speed is 0 until the end of its turn and it is pulled 10 ft toward him."
+    }
   },
   {
     id: "rune-burn", name: "Rune-Burn", rarity: "veryRare",
     effect: "Once per turn on a melee hit: until end of his next turn the target has disadvantage on attacks against others, and takes 2d8 force if it willingly moves away from him.",
-    flavor: "The mark is not deep, but it is hot, and it points one way: at him."
+    flavor: "The mark is not deep, but it is hot, and it points one way: at him.",
+    item: {
+      activation: "special", condition: "Once per turn, on a melee hit", target: one, duration: { value: 1, units: "round" },
+      actionType: "other", damage: [["2d8", "force"]],
+      chatFlavor: "Until the end of his next turn the target has disadvantage on attacks against others, and takes the force damage if it willingly moves away from him."
+    }
   }
 ];

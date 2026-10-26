@@ -67,7 +67,7 @@ export class RuneLibraryEditor extends FormApplication {
       case "edit": {
         if (!rune) return;
         const data = await runeFormDialog(rune);
-        if (data) await saveRune({ ...data, id, effects: rune.effects });
+        if (data) await saveRune({ ...data, id, effects: rune.effects, item: rune.item });
         break;
       }
       case "toggle": {

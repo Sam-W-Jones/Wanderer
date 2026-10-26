@@ -5,10 +5,13 @@ It adds a crafting overlay drawn over the Wanderer's torso with four slots:
 
 - **Core** (centre): a passive item slot. Only the GM can drop an item in or pull it out.
 - **Node I, II, III**: craftable slots. Each holds either a **rune** carved from the rune library, or the
-  **essence** of a magic item the Wanderer has disenchanted. Anything in a node is an attuned item on the sheet.
+  **essence** of a magic item the Wanderer has disenchanted.
 
-Crafting takes time. The Wanderer may work on the current project **once per day**; the project finishes when
-its days are done and the rune or essence is set into its node.
+Everything slotted feeds straight into the character sheet: runes are real dnd5e items with uses, saves, damage
+and Active Effects, essences are the original items, and +N weapons and armor contribute a non-stacking rider.
+
+Crafting takes time. The Wanderer may work on the current project **once per day**; whatever already sits in the
+target node keeps working until the project is finished, and only then is it replaced.
 
 ## Installation
 
@@ -20,22 +23,6 @@ https://github.com/OWNER/wanderer/releases/latest/download/module.json
 ```
 
 Then enable **The Wanderer's Core** in the world's module settings. The world must use the dnd5e system.
-
-### Publishing a release (maintainers)
-
-1. Create the GitHub repository and push this folder to it. Replace `OWNER` in `module.json` and this README with
-   the GitHub account or organisation name.
-2. Bump `version` in `module.json` and add a `CHANGELOG.md` entry.
-3. Publish a GitHub release whose tag is the version prefixed with `v` (for example `v0.2.0`). The
-   [release workflow](.github/workflows/release.yml) stamps the version and URLs into `module.json`, zips the module,
-   and attaches `module.json` and `module.zip` to the release. The manifest URL above always points at the latest
-   release, so Foundry's update check works.
-
-The [check workflow](.github/workflows/check.yml) runs on every push: a syntax check of the scripts, JSON validation,
-and the headless smoke test in `tests/smoke.mjs` (run it locally with `node tests/smoke.mjs .`).
-
-For local development without a release, the folder can also be placed (or junction-linked) directly in
-`Data/modules/wanderer`; the folder name must match the module id.
 
 ## Setting up the Wanderer
 
@@ -54,15 +41,38 @@ The window has the torso on the left and three panels on the right.
 - **Double-click** a filled slot to open its item sheet; double-click an empty node to choose a rune.
 - **Filled** slots glow blue and are linked to the core; a slot being worked on glows amber with a progress ring.
 
-### Crafting a rune
+### Carving a rune
 
-1. Click an empty node (or its **Choose a rune** button) to open the rune picker, grouped by rarity.
-2. Pick a rune and press **Carve**, or drag the rune onto a node. Runes already carved are marked, and runes with a
-   prerequisite (Unstable Core II needs Overload) are locked until it is met.
+1. Click a node (or its **Choose a rune** button) to open the rune picker, grouped by rarity. The book icon on
+   each row opens the rune in the **Wanderer Runes** compendium.
+2. Pick a rune and press **Carve**, drag the rune onto a node, or drag an item straight out of the compendium
+   onto a node. Runes already carved are marked, and runes with a prerequisite (Unstable Core II needs Overload)
+   are locked until it is met.
 3. The project appears on the **Crafting** bench with a progress bar. Press **Work for a day** once per day.
-4. When the days are done the rune is installed. If the node was occupied you are asked before replacing it.
+4. When the days are done the rune is installed. If the node was occupied, the old rune or essence stayed active
+   the whole time and is replaced now (a rune is lost; an essence returns to the inventory).
 
 Only one project can be active. Starting another abandons the current one (with a prompt).
+
+### What a carved rune is on the sheet
+
+A carved rune is copied from the compendium onto the actor as a **Supernatural Gift** feature (Runic Fist and
+Wrecking Yard are weapons), named `Rune: …`, with:
+
+- an **activation** (action, bonus, reaction or special) and the triggering condition in its activation text;
+- **limited uses** where the rune says so (Overload, Colossus, Return of Mind 1/long rest; Shockwave, Pile Driver,
+  Kinetic Lock 1/short rest). Unstable Core II spends Overload's use;
+- **saving throws** with the DC computed from the Wanderer (Overload: Dex save, DC 8 + PB + Con; pushes, pulls,
+  trips and Shockwave: Strength save, DC 8 + PB + Str; Pile Driver: Con save, DC from Str), **damage** rolls
+  (Overload 5d8 force, Slam 2d6, Hurl 1d6 per 10 ft, Vise = Str modifier, Rune-Burn 2d8 force, Pile Driver fall
+  damage) and Rally Core's temporary hit points (PB + Con);
+- **passive Active Effects** applied while carved: Recall (+1 Int), Return of Mind (+2 Int, Int and Wis save
+  proficiency), Tremor Step (tremorsense 10 ft). Colossus carries a 1-minute effect (Large, +1d4 melee damage,
+  midi-qol advantage flags) that is offered on its chat card;
+- an **attunement** effect that lowers the actor's attunement maximum by one, so three carved runes use the three
+  attunement slots (setting *Carved runes use an attunement slot*).
+
+Runes with no mechanical hook (Rooted, Living Wall, Keystone, …) are passive features with their text.
 
 ### Disenchanting
 
@@ -70,13 +80,25 @@ Only one project can be active. Starting another abandons the current one (with 
 Disenchanting destroys the item and creates an **Essence of …** loot item that keeps the original item's full data.
 Essences can then be slotted into a node:
 
-- press **Slot…** next to the essence and choose a node, or drag the essence onto a node, or use the Essences tab of
+- press **Slot…** next to the essence and choose a node, drag the essence onto a node, or use the Essences tab of
   the rune picker;
 - or drag a magic item straight from the inventory onto a node, which disenchants it and starts the project.
 
-Slotting an essence takes the crafting time of its rarity unless the **Essences slot instantly** setting is on. The
-installed item is the original item (with its effects, uses and description), renamed `Node: …`, equipped and attuned.
-Removing an essence from a node returns it to the inventory as an essence; removing a rune destroys it.
+Slotting an essence takes the crafting time of its rarity unless the **Essences slot instantly** setting is on.
+The installed item is the original item as-is (effects, uses, description), renamed `Node: …`, attuned, and
+equipped (armor is attuned but not worn: the Wanderer's AC is his own). Removing an essence from a node returns
+it to the inventory with its original data.
+
+### Riders: +N weapons and armor
+
+A disenchanted **+N weapon** carries its bonus as a rider: +N to the Wanderer's weapon attack and damage rolls
+(`system.bonuses.mwak`/`rwak`), so his fists hit like the blade did. A **+N armor or shield** carries +N to AC
+(`system.attributes.ac.bonus`). The bonus is read from dnd5e's `magicalBonus` field, the attack bonus, or a `+N` in
+the item's name.
+
+**Riders do not stack.** Among the slotted nodes only the highest weapon bonus and the highest armor bonus apply,
+each through one Active Effect on the actor (`Node rider: weapon +2`). Two +2 swords give +2, not +4. The node
+copy of the item has its own +N stripped so nothing is counted twice; the essence keeps the original data.
 
 ### The core
 
@@ -96,35 +118,50 @@ The daily work allowance resets when any of these happen:
 
 The bench also gives the GM **Add days** (bulk progress) and **Finish now**.
 
+## The Wanderer Runes compendium
+
+`packs/runes` ships all 41 runes as ready-to-use items. The picker and the carving code use it: a built-in rune
+is carved as a copy of its compendium item, so a GM who unlocks the pack and edits a rune's mechanics sees the
+edit on the next carving. Deleting or renaming entries is not supported (ids are fixed per rune); use the rune
+library for new runes or duplicate a compendium item into the world, edit it, and drag it onto a node.
+
+The pack is generated from `scripts/runes.mjs` (text and mechanics) by `tools/build-packs.mjs`. After editing
+the definitions, rebuild it:
+
+```bash
+node tools/build-packs.mjs --modules "C:\Program Files\Foundry10\Foundry Virtual Tabletop\resources\app"
+```
+
+`--modules` points at a folder whose `node_modules` holds `classic-level` (Foundry's own install works, or run
+`npm install classic-level` in the module folder and omit the flag). Foundry's bundled Node runs it without a
+separate Node install:
+
+```bash
+ELECTRON_RUN_AS_NODE=1 "C:\Program Files\Foundry10\Foundry Virtual Tabletop\Foundry Virtual Tabletop.exe" tools/build-packs.mjs --modules "C:\Program Files\Foundry10\Foundry Virtual Tabletop\resources\app"
+```
+
 ## Settings
 
 | Setting | Default | Notes |
 | --- | --- | --- |
 | Crafting days: Common / Uncommon / Rare / Very rare / Legendary | 5 / 10 / 50 / 125 / 250 | DMG crafting times in days of work. |
 | Essences slot instantly | off | Skip crafting time for disenchanted essences. |
+| Carved runes use an attunement slot | on | Each carved rune feature lowers the attunement maximum by one. |
 | Post crafting messages to chat | on | Work days, installs and disenchants go to the chat log. |
 | Core image | the concept sheet | Any image; frame it with the Layout menu. |
 | Rune library (menu) | | Add, edit, disable or delete runes. Edits to built-in runes are stored as overrides and can be reset. |
 | Core layout (menu) | | Crop rectangle (source pixels) and the position (%), size (px) and label of each slot. |
-
-## Runes
-
-The built-in library is the full set of Uncommon, Rare and Very rare runes from the Wanderer's tables, in
-`scripts/runes.mjs`. A carved rune becomes an attuned trinket named `Rune: …` with the effect and flavour text in its
-description. Runes with explicit usage (Overload, Colossus, Shockwave, Pile Driver, Kinetic Lock, Return of Mind) get
-an activation and limited uses; Recall, Return of Mind and Tremor Step carry Active Effects for their numeric parts.
-
-Custom runes added through the library get the same treatment (activation and uses are optional fields in the form);
-Active Effects on custom runes can be set through the API (`effects` on the saved rune).
 
 ## Data model
 
 Items are the source of truth, so the sheet and the overlay never disagree:
 
 - A slotted item has `flags.wanderer = { slot, kind: "rune" | "essence" | "core" | "item", rarity, sourceName, … }`.
-  Deleting it from the sheet empties the slot.
-- An essence has `flags.wanderer.essence = { sourceName, sourceImg, rarity, sourceData }` where `sourceData` is the
-  original item's full data.
+  Deleting it from the sheet empties the slot. Slotted essences also keep `rider` and `sourceData`.
+- An essence has `flags.wanderer.essence = { sourceName, sourceImg, rarity, rider, sourceData }` where `sourceData`
+  is the original item's full data.
+- Compendium rune items carry `flags.wanderer = { runeId, rarity, effect, flavor, requires, consumeOf }`.
+- Rider effects on the actor carry `flags.wanderer = { rider: "weapon" | "armor", bonus }`.
 - The actor holds `flags.wanderer.enabled`, `flags.wanderer.project` (the bench) and `flags.wanderer.dayToken`.
 
 ## API
@@ -137,15 +174,26 @@ api.designate(actor);             // GM: flag an actor as the Wanderer; api.revo
 api.crafting.beginProject(actor, { slot: "node1", kind: "rune", runeId: "titans-grip" });
 api.crafting.workDays(actor, 1);
 api.crafting.grantNewDay(actor);
-api.runes.library();              // all enabled runes
-api.runes.save({ name, rarity, effect, flavor, requires, activation, uses, effects });
+api.runes.library();              // all enabled runes (text + mechanics)
+api.runes.save({ name, rarity, effect, flavor, requires, item, effects });
+api.items.build(rune);            // full dnd5e item data for a rune definition
+api.items.uuid("overload");       // compendium UUID of a built-in rune
 api.slots.items(actor);           // { core, node1, node2, node3 } → Item | null
 api.slots.disenchantItem(actor, item);
+api.riders.active(actor);         // { weapon: 2, armor: 1 }
 ```
+
+## Development
+
+- `node tests/smoke.mjs .` runs the headless smoke test (stubbed Foundry; crafting, disenchant, riders, slots).
+- The [check workflow](.github/workflows/check.yml) runs the syntax check, JSON validation and smoke test on
+  every push. The [release workflow](.github/workflows/release.yml) stamps `module.json` and attaches
+  `module.json` and `module.zip` to a published release tagged `vX.Y.Z`; replace `OWNER` in `module.json` and this
+  README with the GitHub account first.
+- For local play without a release, the folder can be placed (or junction-linked) in `Data/modules/wanderer`.
 
 ## Notes
 
-- dnd5e limits attunement to three items by default. Three nodes fill that; if the core item also requires
-  attunement, raise the actor's attunement maximum on the sheet.
-- Verified against the dnd5e 2.x/3.x data models (attunement changed shape in 3.2; both are handled).
-- Works on Foundry v11 only (Application v1 API).
+- Verified against the dnd5e 2.x/3.x data models (attunement changed shape in 3.2; both are handled). The
+  compendium is built for dnd5e 3.x; 3.2+ migrates its attunement fields on load.
+- Works on Foundry v11 only (Application v1 API, LevelDB packs).

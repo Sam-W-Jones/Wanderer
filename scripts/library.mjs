@@ -78,6 +78,7 @@ export async function saveRune(rune) {
   if (usesMax > 0) clean.uses = { max: usesMax, per: rune.uses?.per || "lr" };
   if (rune.img) clean.img = rune.img;
   if (Array.isArray(rune.effects)) clean.effects = rune.effects;
+  if (rune.item && typeof rune.item === "object") clean.item = rune.item;
   store.custom[id] = clean;
   await writeStore(store);
   return id;

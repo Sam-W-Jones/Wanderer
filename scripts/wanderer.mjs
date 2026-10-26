@@ -14,6 +14,8 @@ import {
   getSlotItems, getEssences, disenchantables, disenchantItem, installItemDocument, removeFromSlot
 } from "./model.mjs";
 import { BUILTIN_RUNES } from "./runes.mjs";
+import { buildRuneItemData, runeItemId, runePackUuid, PACK_ID } from "./items.mjs";
+import { activeRiders, syncRiders, requestRiderSync, riderOf } from "./riders.mjs";
 
 /* -------------------------------------------- */
 /*  Helpers                                     */
@@ -58,6 +60,8 @@ Hooks.once("init", () => {
     runes: { builtin: BUILTIN_RUNES, library: getRuneLibrary, get: getRune, save: saveRune, remove: deleteCustomRune, setDisabled: setRuneDisabled },
     crafting: { getProject, projectStatus, beginProject, workDays, installProject, abandonProject, grantNewDay, finishNow, getDaysFor },
     slots: { ids: SLOT_IDS, nodes: NODE_IDS, items: getSlotItems, essences: getEssences, disenchantables, disenchantItem, install: installItemDocument, remove: removeFromSlot },
+    items: { build: buildRuneItemData, id: runeItemId, uuid: runePackUuid, pack: PACK_ID },
+    riders: { active: activeRiders, of: riderOf, sync: syncRiders, request: requestRiderSync },
     layout: getLayout,
     isWanderer,
     myWanderer,
@@ -126,7 +130,16 @@ function refreshFor(doc) {
 }
 
 for (const hook of ["createItem", "updateItem", "deleteItem"]) {
-  Hooks.on(hook, item => refreshFor(item));
+  Hooks.on(hook, (...args) => {
+    const item = args[0];
+    const userId = args.at(-1);
+    refreshFor(item);
+    // Slot changes made from the sheet (or by this module) keep the rider effects in step.
+    const actor = item?.parent;
+    if (actor instanceof Actor && isWanderer(actor) && userId === game.user.id && item.getFlag(MODULE_ID, "slot")) {
+      requestRiderSync(actor);
+    }
+  });
 }
 
 Hooks.on("updateActor", (actor, changes) => {

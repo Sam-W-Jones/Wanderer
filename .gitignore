@@ -11,3 +11,8 @@ desktop.ini
 # Packaging
 *.zip
 dist/
+
+# LevelDB pack housekeeping files Foundry rewrites on open
+packs/*/LOCK
+packs/*/LOG
+packs/*/LOG.old

@@ -1,19 +1,25 @@
 import { MODULE_ID, SECONDS_PER_DAY, NODE_IDS } from "./constants.mjs";
-import { getDaysFor, essencesInstant, slotLabel } from "./settings.mjs";
+import { getDaysFor, essencesInstant, slotLabel, runesConsumeAttunement } from "./settings.mjs";
 import { getRune, runeIcon } from "./library.mjs";
-import { getSlotItems, slottedRuneIds, buildRuneItemData, buildSlottedEssenceData } from "./model.mjs";
+import { attunedData, itemRarity } from "./dnd5e.mjs";
+import { buildRuneItemData, runeItemId, PACK_ID } from "./items.mjs";
+import { getSlotItems, slottedRuneIds, buildSlottedEssenceData, removeFromSlot, prefixedName } from "./model.mjs";
+import { requestRiderSync } from "./riders.mjs";
 import { L, postChat, escapeHTML } from "./utils.mjs";
 
 /**
  * One project at a time, stored at flags.wanderer.project:
  * {
- *   slot, kind: "rune"|"essence", runeId|null, essenceId|null,
+ *   slot, kind: "rune"|"essence", runeId|null, essenceId|null, sourceUuid|null,
  *   name, img, rarity, daysRequired, daysDone, complete,
  *   startedDay, lastWork: { worldDay, dayToken } | null
  * }
  * "Once per day" = at most one work action per (world day, day token). The day token
  * increments on a long rest or when the GM grants a new day, so tables that never
  * advance world time still get a fresh day.
+ *
+ * Whatever already sits in the target node keeps working until the project is finished;
+ * only then is it replaced.
  */
 
 export function getProject(actor) {
@@ -37,7 +43,7 @@ export function hasWorkedToday(actor, project = getProject(actor)) {
 /** Resolve the rune or essence a project points at. Null if it no longer exists. */
 export function projectSource(actor, project = getProject(actor)) {
   if (!project) return null;
-  if (project.kind === "rune") return getRune(project.runeId);
+  if (project.kind === "rune") return getRune(project.runeId) ?? (project.sourceUuid ? { id: project.runeId, external: true } : null);
   return actor.items.get(project.essenceId) ?? null;
 }
 
@@ -81,11 +87,31 @@ async function confirm(title, content) {
   return Dialog.confirm({ title, content: `<p>${content}</p>`, defaultYes: false, options: { classes: ["dialog", "wanderer-app"] } });
 }
 
+/** Read a rune definition off an Item carrying wanderer rune flags (a compendium or world rune item). */
+export function runeFromItem(item) {
+  if (!item) return null;
+  const f = item.flags?.[MODULE_ID] ?? {};
+  const id = f.runeId || String(item.name ?? "").slugify({ strict: true });
+  if (!id) return null;
+  return {
+    id,
+    name: f.sourceName || item.name,
+    rarity: f.rarity || itemRarity(item) || "uncommon",
+    effect: f.effect ?? "",
+    flavor: f.flavor ?? "",
+    requires: f.requires ?? null,
+    img: item.img,
+    item: { consumeOf: f.consumeOf ?? null },
+    source: "item"
+  };
+}
+
 /**
  * Start a project. `force` skips the "abandon current project?" prompt.
+ * `sourceUuid` carves a copy of that Item (a rune item from a compendium or the world).
  * Returns the project, or null if cancelled.
  */
-export async function beginProject(actor, { slot, kind, runeId = null, essenceId = null }, { force = false } = {}) {
+export async function beginProject(actor, { slot, kind, runeId = null, essenceId = null, sourceUuid = null }, { force = false } = {}) {
   if (!actor.isOwner) return void ui.notifications.warn(L("WANDERER.Craft.notOwner"));
   if (!NODE_IDS.includes(slot)) return null;
 
@@ -97,11 +123,12 @@ export async function beginProject(actor, { slot, kind, runeId = null, essenceId
 
   let project;
   if (kind === "rune") {
-    const rune = getRune(runeId);
+    let rune = getRune(runeId);
+    if (!rune && sourceUuid) rune = runeFromItem(await fromUuid(sourceUuid).catch(() => null));
     const problem = runeAvailability(actor, rune);
     if (problem) return void ui.notifications.warn(problem);
     project = {
-      slot, kind, runeId: rune.id, essenceId: null,
+      slot, kind, runeId: rune.id, essenceId: null, sourceUuid,
       name: rune.name, img: runeIcon(rune), rarity: rune.rarity,
       daysRequired: getDaysFor(rune.rarity)
     };
@@ -110,11 +137,18 @@ export async function beginProject(actor, { slot, kind, runeId = null, essenceId
     const e = ess?.getFlag(MODULE_ID, "essence");
     if (!e) return void ui.notifications.warn(L("WANDERER.Craft.sourceMissing", { name: essenceId }));
     project = {
-      slot, kind: "essence", runeId: null, essenceId: ess.id,
+      slot, kind: "essence", runeId: null, essenceId: ess.id, sourceUuid: null,
       name: e.sourceName || ess.name, img: e.sourceImg || ess.img, rarity: e.rarity || "uncommon",
       daysRequired: essencesInstant() ? 0 : getDaysFor(e.rarity || "uncommon")
     };
   }
+
+  const occupant = getSlotItems(actor)[slot];
+  if (occupant && !force) {
+    const ok = await confirm(slotLabel(slot), escapeHTML(L("WANDERER.Craft.occupiedAtStart", { slot: slotLabel(slot), name: occupant.name })));
+    if (!ok) return null;
+  }
+
   project.daysDone = 0;
   project.complete = project.daysRequired <= 0;
   project.lastWork = null;
@@ -144,35 +178,80 @@ export async function workDays(actor, days = 1, { ignoreDaily = false } = {}) {
   if (update.complete) await installProject(actor);
 }
 
-/** Put the finished project into its node. Prompts if the node is occupied. */
-export async function installProject(actor, { confirmReplace = true } = {}) {
+/**
+ * Item data for carving a rune: a copy of the compendium item when the rune is built in (so GM
+ * edits to the pack carry through), the referenced item for `sourceUuid`, else built from the definition.
+ */
+export async function runeInstallData(project, rune, slot) {
+  let data = null;
+  if (project.sourceUuid) {
+    const doc = await fromUuid(project.sourceUuid).catch(() => null);
+    if (doc instanceof Item) data = doc.toObject();
+  }
+  if (!data && rune && rune.source === "builtin") {
+    const pack = game.packs?.get(PACK_ID);
+    const doc = pack ? await pack.getDocument(runeItemId(rune.id)).catch(() => null) : null;
+    if (doc) data = doc.toObject();
+  }
+  if (!data && rune && !rune.external) {
+    data = buildRuneItemData(rune, { attunement: attunedData(true), consumeAttunement: runesConsumeAttunement(), withIds: false });
+  }
+  if (!data) return null;
+
+  delete data._id;
+  const f = data.flags?.[MODULE_ID] ?? {};
+  const sourceName = f.sourceName || rune?.name || data.name;
+  data.name = prefixedName("rune", sourceName);
+  data.flags = data.flags ?? {};
+  data.flags[MODULE_ID] = {
+    ...f,
+    runeId: rune?.id ?? f.runeId ?? project.runeId,
+    slot, kind: "rune",
+    rarity: f.rarity || rune?.rarity || "",
+    effect: f.effect ?? rune?.effect ?? "",
+    flavor: f.flavor ?? rune?.flavor ?? "",
+    requires: f.requires ?? rune?.requires ?? null,
+    sourceName
+  };
+  data.system = data.system ?? {};
+  if (data.type === "feat") data.system.requirements = L("WANDERER.Item.requirementsSlot", { slot: slotLabel(slot) });
+  if (["weapon", "equipment"].includes(data.type)) Object.assign(data.system, attunedData(true), { equipped: true });
+  if (!runesConsumeAttunement()) data.effects = (data.effects ?? []).filter(e => !e.flags?.[MODULE_ID]?.attunement);
+  return data;
+}
+
+/** Put the finished project into its node, replacing whatever was there. */
+export async function installProject(actor) {
   const project = getProject(actor);
   if (!project) return false;
   const status = projectStatus(actor);
   if (!status.complete) return false;
 
-  const existing = getSlotItems(actor)[project.slot];
-  if (existing && confirmReplace) {
-    const ok = await confirm(L("WANDERER.App.install"),
-      escapeHTML(L("WANDERER.Craft.replaceSlot", { slot: slotLabel(project.slot), name: existing.name })));
-    if (!ok) return false;
-  }
-
   let data;
+  let rune = null;
   if (project.kind === "rune") {
-    const rune = getRune(project.runeId);
-    if (!rune) return void ui.notifications.warn(L("WANDERER.Craft.sourceMissing", { name: project.name }));
-    data = buildRuneItemData(rune, project.slot);
+    rune = getRune(project.runeId);
+    data = await runeInstallData(project, rune, project.slot);
+    if (!data) return void ui.notifications.warn(L("WANDERER.Craft.sourceMissing", { name: project.name }));
   } else {
     const ess = actor.items.get(project.essenceId);
     if (!ess) return void ui.notifications.warn(L("WANDERER.Craft.sourceMissing", { name: project.name }));
     data = buildSlottedEssenceData(ess, project.slot);
   }
 
-  if (existing) await existing.delete();
-  await actor.createEmbeddedDocuments("Item", [data]);
+  await removeFromSlot(actor, project.slot, { announce: false });
+  const [created] = await actor.createEmbeddedDocuments("Item", [data]);
   if (project.kind === "essence") await actor.items.get(project.essenceId)?.delete();
+
+  // A rune that spends another rune's uses (Unstable Core II → Overload) is pointed at it.
+  const consumeOf = data.flags?.[MODULE_ID]?.consumeOf ?? rune?.item?.consumeOf;
+  if (created && consumeOf) {
+    const target = actor.items.find(i => i.getFlag(MODULE_ID, "slot") && i.getFlag(MODULE_ID, "runeId") === consumeOf);
+    if (target) await created.update({ "system.consume": { type: "charges", target: target.id, amount: 1, scale: false } });
+  }
+
   await actor.unsetFlag(MODULE_ID, "project");
+  requestRiderSync(actor);
   await postChat(actor, escapeHTML(L("WANDERER.Chat.installed", { name: project.name, slot: slotLabel(project.slot) })));
   return true;
 }

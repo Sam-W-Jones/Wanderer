@@ -8,6 +8,7 @@ import {
   projectStatus, beginProject, workDays, installProject, abandonProject, grantNewDay, finishNow, currentWorldDay
 } from "../crafting.mjs";
 import { isMagicItem, isPhysical, itemRarity } from "../dnd5e.mjs";
+import { activeRiders, riderLabel } from "../riders.mjs";
 import { L, rarityLabel, kindLabel, isWanderer, escapeHTML, promptNumber } from "../utils.mjs";
 import { RunePicker } from "./picker.mjs";
 import { openDisenchantDialog } from "./disenchant.mjs";
@@ -94,6 +95,7 @@ export class WandererCoreApp extends Application {
           kind, kindLabel: kindLabel(kind),
           rarity, rarityLabel: rarityLabel(rarity),
           effect: f.effect ?? "", flavor: f.flavor ?? "",
+          rider: f.rider ?? null, riderLabel: riderLabel(f.rider),
           description
         };
         view.tooltip = rarity ? `${item.name} (${rarityLabel(rarity)})` : item.name;
@@ -117,9 +119,16 @@ export class WandererCoreApp extends Application {
       return {
         id: e.id, name: f.sourceName || e.name, img: f.sourceImg || e.img,
         rarity, rarityLabel: rarityLabel(rarity),
+        rider: f.rider ?? null, riderLabel: riderLabel(f.rider),
         days: essencesInstant() ? 0 : getDaysFor(rarity)
       };
     });
+
+    const active = activeRiders(actor);
+    const riderParts = [];
+    if (active.weapon) riderParts.push(riderLabel({ kind: "weapon", bonus: active.weapon }));
+    if (active.armor) riderParts.push(riderLabel({ kind: "armor", bonus: active.armor }));
+    const riders = { any: riderParts.length > 0, summary: riderParts.join(" · ") || L("WANDERER.App.ridersNone") };
 
     const crop = layout.crop ?? { x: 0, y: 0, w: 1, h: 1 };
     const sheet = layout.sheet ?? { w: 1, h: 1 };
@@ -137,6 +146,7 @@ export class WandererCoreApp extends Application {
       slots: slotViews, links, image,
       project: { ...status, rarityLabel: rarityLabel(status.rarity) },
       essences,
+      riders,
       essenceInstant: essencesInstant(),
       magicCount: disenchantables(actor).length,
       worldDay: currentWorldDay()
@@ -301,6 +311,13 @@ export class WandererCoreApp extends Application {
       return this.render(false);
     }
     if (item.getFlag(MODULE_ID, "slot")) return;
+
+    // A rune item (from the Wanderer Runes compendium, or a world copy of one).
+    const runeId = item.getFlag(MODULE_ID, "runeId");
+    if (runeId) {
+      await beginProject(actor, { slot, kind: "rune", runeId, sourceUuid: item.uuid });
+      return this.render(false);
+    }
 
     if (game.user.isGM) {
       const choice = await gmNodeChoice(item, slot);

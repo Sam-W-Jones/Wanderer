@@ -21,6 +21,12 @@ export function registerSettings() {
     scope: "world", config: true, type: Boolean, default: false, onChange: rerender
   });
 
+  game.settings.register(MODULE_ID, "runesConsumeAttunement", {
+    name: "WANDERER.Settings.runesConsumeAttunement.name",
+    hint: "WANDERER.Settings.runesConsumeAttunement.hint",
+    scope: "world", config: true, type: Boolean, default: true, onChange: rerender
+  });
+
   game.settings.register(MODULE_ID, "chatMessages", {
     name: "WANDERER.Settings.chatMessages.name",
     hint: "WANDERER.Settings.chatMessages.hint",
@@ -68,6 +74,10 @@ export function getDaysFor(rarity) {
 
 export function essencesInstant() {
   return !!game.settings.get(MODULE_ID, "essenceInstant");
+}
+
+export function runesConsumeAttunement() {
+  return !!game.settings.get(MODULE_ID, "runesConsumeAttunement");
 }
 
 export function getImage() {

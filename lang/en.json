@@ -40,7 +40,23 @@
       "instantEssence": "Essences slot instantly.",
       "timedEssence": "Essences take the crafting time of their rarity.",
       "dragHint": "Drag onto a node",
-      "worldDay": "World day {day}"
+      "worldDay": "World day {day}",
+      "rider": {
+        "weapon": "Rider: {bonus} to weapon attack and damage",
+        "armor": "Rider: {bonus} to AC"
+      },
+      "riders": "Riders",
+      "ridersNone": "none",
+      "ridersHint": "riders do not stack; the highest bonus among the nodes applies."
+    },
+    "Rider": {
+      "weapon": "Node rider: weapon {bonus}",
+      "armor": "Node rider: armor {bonus}"
+    },
+    "Item": {
+      "requirements": "Carved into the Wanderer's core",
+      "requirementsSlot": "Carved into {slot}",
+      "attunementEffect": "Attunement (carved rune)"
     },
     "Kind": {
       "rune": "Rune",
@@ -78,11 +94,12 @@
       "slot": "Slot",
       "noEssences": "No essences in the inventory.",
       "essenceDays": "{days} days",
-      "instant": "instant"
+      "instant": "instant",
+      "view": "View in the Wanderer Runes compendium"
     },
     "Craft": {
       "replaceProject": "Abandon the current project ({name}) and lose its progress?",
-      "replaceSlot": "{slot} already holds {name}. Replace it?",
+      "occupiedAtStart": "{slot} holds {name}. It stays in place and keeps working until the new carving is finished, then it is replaced. Continue?",
       "alreadyWorked": "The Wanderer has already worked today.",
       "noProject": "There is no active project.",
       "abandonConfirm": "Abandon {name}? All progress is lost.",
@@ -145,6 +162,7 @@
       "daysVeryRare": { "name": "Crafting days: Very rare", "hint": "Days of work to craft a very rare rune or essence (DMG: 125)." },
       "daysLegendary": { "name": "Crafting days: Legendary", "hint": "Days of work to slot a legendary essence (DMG: 250)." },
       "essenceInstant": { "name": "Essences slot instantly", "hint": "If enabled, slotting a disenchanted essence takes no crafting time. Otherwise it takes the crafting days of its rarity." },
+      "runesConsumeAttunement": { "name": "Carved runes use an attunement slot", "hint": "Each carved rune feature lowers the actor's attunement maximum by one, so the three nodes behave like attuned items. Weapon runes and slotted essences are attuned items in their own right." },
       "chatMessages": { "name": "Post crafting messages to chat", "hint": "Announce work days, completed carvings and disenchanting in the chat log." },
       "sheetImage": { "name": "Core image", "hint": "The image shown behind the slots. The default is the Wanderer concept sheet; use the Layout menu to frame it." },
       "libraryMenu": { "name": "Rune library", "label": "Open the rune library", "hint": "Add, edit, disable or remove runes available for carving." },

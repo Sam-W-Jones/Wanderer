@@ -3,6 +3,7 @@ import { getDaysFor, essencesInstant, slotLabel } from "../settings.mjs";
 import { getRuneLibrary, getRune } from "../library.mjs";
 import { getEssences, slottedRuneIds } from "../model.mjs";
 import { beginProject, runeAvailability } from "../crafting.mjs";
+import { runePackUuid } from "../items.mjs";
 import { itemRarity } from "../dnd5e.mjs";
 import { L, rarityLabel } from "../utils.mjs";
 
@@ -99,6 +100,7 @@ export class RunePicker extends Application {
       problem: problem ?? "",
       available: !problem,
       requiresName: req?.name ?? "",
+      packUuid: ["builtin", "override"].includes(rune.source) ? runePackUuid(rune.id) : null,
       search: `${rune.name} ${rune.effect ?? ""} ${rune.flavor ?? ""}`.toLowerCase()
     };
   }
@@ -106,6 +108,11 @@ export class RunePicker extends Application {
   activateListeners(html) {
     super.activateListeners(html);
     html.find(".search").on("input", ev => this._filter(ev.currentTarget.value));
+    html.find("[data-action=view]").on("click", async ev => {
+      ev.preventDefault();
+      const doc = await fromUuid(ev.currentTarget.dataset.uuid).catch(() => null);
+      doc?.sheet?.render(true);
+    });
     html.find("[data-action=craft]").on("click", async ev => {
       ev.preventDefault();
       const id = ev.currentTarget.closest("[data-rune-id]")?.dataset.runeId;

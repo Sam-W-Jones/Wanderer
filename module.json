@@ -20,6 +20,16 @@
   "languages": [
     { "lang": "en", "name": "English", "path": "lang/en.json" }
   ],
+  "packs": [
+    {
+      "name": "runes",
+      "label": "Wanderer Runes",
+      "path": "packs/runes",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" }
+    }
+  ],
   "relationships": {
     "systems": [
       { "id": "dnd5e", "type": "system", "compatibility": {} }

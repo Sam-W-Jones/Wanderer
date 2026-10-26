@@ -23,6 +23,7 @@
           {{#if flavor}}<div class="rune-flavor">{{flavor}}</div>{{/if}}
         </div>
         <div class="rune-actions">
+          {{#if packUuid}}<button type="button" class="icon-btn" data-action="view" data-uuid="{{packUuid}}" data-tooltip="{{localize "WANDERER.Picker.view"}}"><i class="fas fa-book"></i></button>{{/if}}
           {{#if taken}}
           <span class="tag carved"><i class="fas fa-check"></i> {{localize "WANDERER.Picker.carved"}}</span>
           {{else if locked}}
