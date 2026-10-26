@@ -12,14 +12,30 @@ its days are done and the rune or essence is set into its node.
 
 ## Installation
 
-1. Put this folder in your Foundry data directory as `Data/modules/wanderer` (the folder name must match the
-   module id `wanderer`). On Windows a junction keeps the dev folder in place:
+The module is distributed through GitHub releases. In Foundry, open **Add-on Modules → Install Module** and paste
+the manifest URL:
 
-   ```bash
-   cmd /c mklink /J "C:\Users\Sam\AppData\Local\FoundryVTT\Data\modules\wanderer" "Z:\dnd\slop_modules\Wanderer"
-   ```
+```
+https://github.com/OWNER/wanderer/releases/latest/download/module.json
+```
 
-2. Enable **The Wanderer's Core** in the world's module settings. The world must use the dnd5e system.
+Then enable **The Wanderer's Core** in the world's module settings. The world must use the dnd5e system.
+
+### Publishing a release (maintainers)
+
+1. Create the GitHub repository and push this folder to it. Replace `OWNER` in `module.json` and this README with
+   the GitHub account or organisation name.
+2. Bump `version` in `module.json` and add a `CHANGELOG.md` entry.
+3. Publish a GitHub release whose tag is the version prefixed with `v` (for example `v0.2.0`). The
+   [release workflow](.github/workflows/release.yml) stamps the version and URLs into `module.json`, zips the module,
+   and attaches `module.json` and `module.zip` to the release. The manifest URL above always points at the latest
+   release, so Foundry's update check works.
+
+The [check workflow](.github/workflows/check.yml) runs on every push: a syntax check of the scripts, JSON validation,
+and the headless smoke test in `tests/smoke.mjs` (run it locally with `node tests/smoke.mjs .`).
+
+For local development without a release, the folder can also be placed (or junction-linked) directly in
+`Data/modules/wanderer`; the folder name must match the module id.
 
 ## Setting up the Wanderer
 

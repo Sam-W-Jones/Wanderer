@@ -31,7 +31,7 @@ export class WandererCoreApp extends Application {
       classes: ["wanderer-app", "wanderer-core"],
       template: TEMPLATES.core,
       width: 990,
-      height: 680,
+      height: 720,
       resizable: true,
       scrollY: [".side-pane"],
       dragDrop: [{ dragSelector: "[data-drag]", dropSelector: ".slot" }]

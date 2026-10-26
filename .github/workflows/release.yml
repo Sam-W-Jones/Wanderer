@@ -1,0 +1,42 @@
+name: Release
+
+# Publish a GitHub release (tag like v0.2.0) and this stamps module.json with the version
+# and repository URLs, zips the module, and attaches module.json + module.zip to the release.
+# Install URL for players: https://github.com/<owner>/<repo>/releases/latest/download/module.json
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stamp module.json
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          VERSION="${TAG#v}"
+          jq --arg v "$VERSION" \
+             --arg u "https://github.com/$REPO" \
+             --arg m "https://github.com/$REPO/releases/latest/download/module.json" \
+             --arg d "https://github.com/$REPO/releases/download/$TAG/module.zip" \
+             '.version = $v | .url = $u | .manifest = $m | .download = $d' \
+             module.json > module.json.tmp
+          mv module.json.tmp module.json
+          cat module.json
+
+      - name: Zip the module
+        run: zip -r module.zip module.json README.md CHANGELOG.md lang scripts styles templates assets
+
+      - name: Attach assets to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" module.json module.zip --clobber

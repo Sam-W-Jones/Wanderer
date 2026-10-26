@@ -1,0 +1,25 @@
+name: Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Syntax-check scripts
+        run: |
+          for f in scripts/*.mjs scripts/apps/*.mjs; do node --check "$f"; done
+
+      - name: Validate JSON
+        run: |
+          node -e "for (const f of ['module.json', 'lang/en.json']) JSON.parse(require('fs').readFileSync(f, 'utf8'))"
+
+      - name: Headless smoke test
+        run: node tests/smoke.mjs .
