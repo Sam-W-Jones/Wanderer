@@ -1,0 +1,59 @@
+<div class="picker-wrap">
+  <header class="picker-head">
+    <div class="target"><span class="muted">{{localize "WANDERER.Picker.target"}}</span> <strong>{{slotLabel}}</strong></div>
+    <input type="search" class="search" placeholder="{{localize "WANDERER.Picker.search"}}" autocomplete="off">
+  </header>
+  <nav class="tabs" data-group="primary">
+    {{#each groups}}
+    <a class="item" data-tab="{{key}}"><span class="dot rarity-{{key}}"></span>{{label}} <span class="count">{{runes.length}}</span></a>
+    {{/each}}
+    <a class="item" data-tab="essences"><i class="fas fa-flask"></i> {{localize "WANDERER.Picker.essences"}} <span class="count">{{essences.length}}</span></a>
+  </nav>
+  <section class="picker-body">
+    {{#each groups}}
+    <div class="tab" data-group="primary" data-tab="{{key}}">
+      <p class="days-note"><i class="fas fa-hourglass-half"></i> {{localize "WANDERER.Picker.daysNote" days=days}}</p>
+      {{#each runes}}
+      <div class="rune-row rarity-{{rarity}}{{#if taken}} taken{{/if}}{{#if locked}} locked{{/if}}{{#if available}} available{{/if}}"
+           data-rune-id="{{id}}" data-search="{{search}}">
+        <img class="rune-icon" src="{{img}}" alt="" draggable="false">
+        <div class="rune-text">
+          <div class="rune-name">{{name}}{{#if requiresName}} <span class="req"><i class="fas fa-link"></i> {{localize "WANDERER.Picker.requires" name=requiresName}}</span>{{/if}}</div>
+          <div class="rune-effect">{{effect}}</div>
+          {{#if flavor}}<div class="rune-flavor">{{flavor}}</div>{{/if}}
+        </div>
+        <div class="rune-actions">
+          {{#if taken}}
+          <span class="tag carved"><i class="fas fa-check"></i> {{localize "WANDERER.Picker.carved"}}</span>
+          {{else if locked}}
+          <span class="tag locked" data-tooltip="{{problem}}"><i class="fas fa-lock"></i> {{localize "WANDERER.Picker.locked"}}</span>
+          {{else if @root.isOwner}}
+          <button type="button" data-action="craft"><i class="fas fa-hammer"></i> {{localize "WANDERER.Picker.carve"}} <small>{{days}}d</small></button>
+          {{/if}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{/each}}
+    <div class="tab" data-group="primary" data-tab="essences">
+      {{#if essences.length}}
+      {{#each essences}}
+      <div class="rune-row essence rarity-{{rarity}}" data-item-id="{{id}}">
+        <img class="rune-icon" src="{{img}}" alt="" draggable="false">
+        <div class="rune-text">
+          <div class="rune-name">{{name}}</div>
+          <div class="rune-effect">{{rarityLabel}}</div>
+        </div>
+        <div class="rune-actions">
+          {{#if @root.isOwner}}
+          <button type="button" data-action="slot-essence"><i class="fas fa-arrow-right-to-bracket"></i> {{localize "WANDERER.Picker.slot"}} <small>{{#if days}}{{days}}d{{else}}{{localize "WANDERER.Picker.instant"}}{{/if}}</small></button>
+          {{/if}}
+        </div>
+      </div>
+      {{/each}}
+      {{else}}
+      <p class="hint">{{localize "WANDERER.Picker.noEssences"}}</p>
+      {{/if}}
+    </div>
+  </section>
+</div>

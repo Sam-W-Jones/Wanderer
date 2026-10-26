@@ -1,0 +1,56 @@
+<form class="layout-form" autocomplete="off">
+  <p class="hint">{{localize "WANDERER.Layout.intro"}}</p>
+  <fieldset>
+    <legend>{{localize "WANDERER.Layout.sheet"}}</legend>
+    <div class="form-group">
+      <label>{{localize "WANDERER.Layout.cropW"}}</label>
+      <input type="number" name="sheet.w" value="{{layout.sheet.w}}" min="1" step="1" data-dtype="Number">
+      <label>{{localize "WANDERER.Layout.cropH"}}</label>
+      <input type="number" name="sheet.h" value="{{layout.sheet.h}}" min="1" step="1" data-dtype="Number">
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>{{localize "WANDERER.Layout.crop"}}</legend>
+    <div class="form-group">
+      <label>{{localize "WANDERER.Layout.cropX"}}</label>
+      <input type="number" name="crop.x" value="{{layout.crop.x}}" step="1" data-dtype="Number">
+      <label>{{localize "WANDERER.Layout.cropY"}}</label>
+      <input type="number" name="crop.y" value="{{layout.crop.y}}" step="1" data-dtype="Number">
+    </div>
+    <div class="form-group">
+      <label>{{localize "WANDERER.Layout.cropW"}}</label>
+      <input type="number" name="crop.w" value="{{layout.crop.w}}" min="1" step="1" data-dtype="Number">
+      <label>{{localize "WANDERER.Layout.cropH"}}</label>
+      <input type="number" name="crop.h" value="{{layout.crop.h}}" min="1" step="1" data-dtype="Number">
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>{{localize "WANDERER.Layout.slots"}}</legend>
+    <table class="layout-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>{{localize "WANDERER.Layout.label"}}</th>
+          <th>{{localize "WANDERER.Layout.x"}}</th>
+          <th>{{localize "WANDERER.Layout.y"}}</th>
+          <th>{{localize "WANDERER.Layout.size"}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each slots}}
+        <tr>
+          <th>{{id}}</th>
+          <td><input type="text" name="slots.{{id}}.label" value="{{label}}"></td>
+          <td><input type="number" name="slots.{{id}}.x" value="{{x}}" step="0.1" data-dtype="Number"></td>
+          <td><input type="number" name="slots.{{id}}.y" value="{{y}}" step="0.1" data-dtype="Number"></td>
+          <td><input type="number" name="slots.{{id}}.size" value="{{size}}" step="1" min="16" data-dtype="Number"></td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </fieldset>
+  <footer class="form-footer">
+    <button type="button" data-action="reset"><i class="fas fa-rotate-left"></i> {{localize "WANDERER.Layout.reset"}}</button>
+    <button type="submit" class="primary"><i class="fas fa-save"></i> {{localize "WANDERER.Layout.save"}}</button>
+  </footer>
+</form>

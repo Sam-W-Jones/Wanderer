@@ -1,0 +1,19 @@
+<div class="disenchant-wrap">
+  <p class="hint">{{localize "WANDERER.Disenchant.intro"}}</p>
+  {{#if items.length}}
+  <ul class="item-list">
+    {{#each items}}
+    <li class="item-row rarity-{{rarity}}" data-item-id="{{id}}">
+      <img src="{{img}}" alt="" draggable="false">
+      <div class="item-text">
+        <div class="item-name">{{name}}</div>
+        <div class="sub">{{#if rarityLabel}}{{rarityLabel}}{{else}}{{type}}{{/if}}{{#if attuned}} · {{localize "WANDERER.Disenchant.attuned"}}{{/if}}</div>
+      </div>
+      <button type="button" class="danger" data-action="disenchant"><i class="fas fa-fire"></i> {{localize "WANDERER.Disenchant.button"}}</button>
+    </li>
+    {{/each}}
+  </ul>
+  {{else}}
+  <p class="hint">{{localize "WANDERER.Disenchant.none"}}</p>
+  {{/if}}
+</div>

@@ -1,0 +1,31 @@
+<form class="library-wrap" autocomplete="off">
+  <header class="library-head">
+    <button type="button" data-action="add"><i class="fas fa-plus"></i> {{localize "WANDERER.Library.add"}}</button>
+  </header>
+  <div class="library-body">
+    {{#each groups}}
+    <h3 class="rarity-{{key}}">{{label}} <span class="count">{{runes.length}}</span></h3>
+    {{#each runes}}
+    <div class="rune-row rarity-{{rarity}}{{#if disabled}} disabled{{/if}}" data-rune-id="{{id}}">
+      <img class="rune-icon" src="{{img}}" alt="" draggable="false">
+      <div class="rune-text">
+        <div class="rune-name">
+          {{name}}
+          <span class="tag source-{{source}}">{{sourceLabel}}</span>
+          {{#if disabled}}<span class="tag off">{{localize "WANDERER.Library.disabled"}}</span>{{/if}}
+          {{#if requiresName}}<span class="req"><i class="fas fa-link"></i> {{localize "WANDERER.Picker.requires" name=requiresName}}</span>{{/if}}
+        </div>
+        <div class="rune-effect">{{effect}}</div>
+        {{#if flavor}}<div class="rune-flavor">{{flavor}}</div>{{/if}}
+      </div>
+      <div class="rune-actions">
+        <button type="button" class="icon-btn" data-action="edit" data-tooltip="{{localize "WANDERER.Library.edit"}}"><i class="fas fa-pen"></i></button>
+        <button type="button" class="icon-btn" data-action="toggle" data-tooltip="{{#if disabled}}{{localize "WANDERER.Library.enable"}}{{else}}{{localize "WANDERER.Library.disable"}}{{/if}}"><i class="fas {{#if disabled}}fa-eye{{else}}fa-eye-slash{{/if}}"></i></button>
+        {{#if isOverride}}<button type="button" class="icon-btn" data-action="reset" data-tooltip="{{localize "WANDERER.Library.reset"}}"><i class="fas fa-rotate-left"></i></button>{{/if}}
+        {{#if isCustom}}<button type="button" class="icon-btn danger" data-action="delete" data-tooltip="{{localize "WANDERER.Library.delete"}}"><i class="fas fa-trash"></i></button>{{/if}}
+      </div>
+    </div>
+    {{/each}}
+    {{/each}}
+  </div>
+</form>

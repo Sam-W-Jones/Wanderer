@@ -1,0 +1,968 @@
+/* ============================================================
+   The Wanderer's Core — dark stone, blue light
+   ============================================================ */
+
+.wanderer-app {
+  --wd-bg: #0c111b;
+  --wd-panel: rgba(17, 24, 38, 0.92);
+  --wd-border: #223047;
+  --wd-text: #d5deea;
+  --wd-muted: #8fa3bd;
+  --wd-blue: #2d9bff;
+  --wd-blue-soft: #7cc4ff;
+  --wd-blue-dim: rgba(45, 155, 255, 0.35);
+  --wd-amber: #ffb547;
+  --wd-danger: #ff6b6b;
+  --wd-common: #9aa7b5;
+  --wd-uncommon: #4fd29a;
+  --wd-rare: #3fa0ff;
+  --wd-veryRare: #b06bff;
+  --wd-legendary: #ffb547;
+  --wd-artifact: #ff7a59;
+}
+
+/* ---------- Window chrome ---------- */
+
+.app.window-app.wanderer-app .window-header {
+  background: #080b12;
+  border-bottom: 1px solid var(--wd-border);
+  color: var(--wd-blue-soft);
+  text-shadow: none;
+}
+
+.app.window-app.wanderer-app .window-content {
+  background: radial-gradient(ellipse at 30% 0%, #16213a 0%, var(--wd-bg) 60%);
+  color: var(--wd-text);
+  padding: 10px;
+  overflow: hidden;
+  font-family: "Signika", sans-serif;
+}
+
+.wanderer-app .window-content h3 {
+  font-family: "Signika", sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wd-muted);
+  border-bottom: 1px solid var(--wd-border);
+  padding-bottom: 6px;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wanderer-app .window-content button:not(.dialog-button) {
+  width: auto;
+  background: #182236;
+  border: 1px solid #2d3d58;
+  color: #cfe3ff;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.wanderer-app .window-content button:not(.dialog-button):hover:not(:disabled) {
+  border-color: var(--wd-blue);
+  box-shadow: 0 0 8px var(--wd-blue-dim);
+}
+
+.wanderer-app .window-content button:not(.dialog-button):disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wanderer-app .window-content button.primary {
+  background: linear-gradient(180deg, #1f5fb8, #163f80);
+  border-color: #3b8fe8;
+}
+
+.wanderer-app .window-content button.danger:hover:not(:disabled) {
+  border-color: var(--wd-danger);
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.35);
+}
+
+.wanderer-app .window-content button.icon-btn {
+  padding: 4px 7px;
+}
+
+.wanderer-app .dialog-buttons .dialog-button {
+  background: #182236;
+  border: 1px solid #2d3d58;
+  color: #cfe3ff;
+}
+
+.wanderer-app .dialog-buttons .dialog-button:hover {
+  border-color: var(--wd-blue);
+  box-shadow: 0 0 8px var(--wd-blue-dim);
+}
+
+.wanderer-choose-node .dialog-buttons {
+  flex-direction: column;
+}
+
+.wanderer-app .window-content input[type="text"],
+.wanderer-app .window-content input[type="number"],
+.wanderer-app .window-content input[type="search"],
+.wanderer-app .window-content select,
+.wanderer-app .window-content textarea {
+  background: #0a0e16;
+  color: var(--wd-text);
+  border: 1px solid var(--wd-border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  min-width: 0;
+}
+
+.wanderer-app .window-content select option {
+  background: #0a0e16;
+}
+
+.wanderer-app .window-content textarea {
+  resize: vertical;
+  font-family: inherit;
+  width: 100%;
+}
+
+.wanderer-app .window-content .form-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.wanderer-app .window-content .form-group > label {
+  flex: 0 0 110px;
+  color: var(--wd-muted);
+  font-size: 12px;
+}
+
+.wanderer-app .window-content .form-group > label.inline {
+  flex: 0 0 auto;
+}
+
+.wanderer-app .window-content .form-group > input,
+.wanderer-app .window-content .form-group > select {
+  flex: 1;
+}
+
+.wanderer-app .window-content .form-group.stacked {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.wanderer-app .window-content fieldset {
+  border: 1px solid var(--wd-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 6px 0;
+}
+
+.wanderer-app .window-content legend {
+  color: var(--wd-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 0 4px;
+}
+
+.wanderer-app .window-content .form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.wanderer-app .hint {
+  color: var(--wd-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 4px 0;
+}
+
+.wanderer-app .hint.small { font-size: 11px; }
+.wanderer-app .hint.warn { color: var(--wd-amber); }
+.wanderer-app .hint.ok { color: var(--wd-uncommon); }
+.wanderer-app .hint.gm { color: var(--wd-amber); }
+.wanderer-app .hint.forge { color: var(--wd-amber); }
+.wanderer-app .muted { color: var(--wd-muted); }
+.wanderer-app .sub { font-size: 11px; color: var(--wd-muted); }
+
+.wanderer-app .count {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0 6px;
+  color: var(--wd-muted);
+  letter-spacing: 0;
+}
+
+.wanderer-app .actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* ---------- Badges, tags, rarity colours ---------- */
+
+.wanderer-app .badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  border: 1px solid currentColor;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--wd-muted);
+  white-space: nowrap;
+}
+
+.wanderer-app .badge.kind-rune { color: var(--wd-blue-soft); }
+.wanderer-app .badge.kind-essence { color: #9fd4ff; }
+.wanderer-app .badge.kind-core { color: #c6e6ff; }
+
+.wanderer-app .tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--wd-border);
+  color: var(--wd-muted);
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+.wanderer-app .tag.carved { color: var(--wd-uncommon); border-color: var(--wd-uncommon); }
+.wanderer-app .tag.locked { color: var(--wd-amber); border-color: var(--wd-amber); }
+.wanderer-app .tag.off { color: var(--wd-danger); border-color: var(--wd-danger); }
+.wanderer-app .tag.source-custom { color: var(--wd-uncommon); }
+.wanderer-app .tag.source-override { color: var(--wd-amber); }
+
+.wanderer-app .badge.rarity-common, .wanderer-app h3.rarity-common { color: var(--wd-common); }
+.wanderer-app .badge.rarity-uncommon, .wanderer-app h3.rarity-uncommon { color: var(--wd-uncommon); }
+.wanderer-app .badge.rarity-rare, .wanderer-app h3.rarity-rare { color: var(--wd-rare); }
+.wanderer-app .badge.rarity-veryRare, .wanderer-app h3.rarity-veryRare { color: var(--wd-veryRare); }
+.wanderer-app .badge.rarity-legendary, .wanderer-app h3.rarity-legendary { color: var(--wd-legendary); }
+.wanderer-app .badge.rarity-artifact, .wanderer-app h3.rarity-artifact { color: var(--wd-artifact); }
+
+.wanderer-app .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--wd-muted);
+}
+
+.wanderer-app .dot.rarity-common { background: var(--wd-common); }
+.wanderer-app .dot.rarity-uncommon { background: var(--wd-uncommon); }
+.wanderer-app .dot.rarity-rare { background: var(--wd-rare); }
+.wanderer-app .dot.rarity-veryRare { background: var(--wd-veryRare); }
+.wanderer-app .dot.rarity-legendary { background: var(--wd-legendary); }
+.wanderer-app .dot.rarity-artifact { background: var(--wd-artifact); }
+
+.wanderer-app .rune-row,
+.wanderer-app .essence-row,
+.wanderer-app .item-row {
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-left-color: var(--wd-border);
+}
+
+.wanderer-app .rune-row.rarity-common, .wanderer-app .essence-row.rarity-common, .wanderer-app .item-row.rarity-common { border-left-color: var(--wd-common); }
+.wanderer-app .rune-row.rarity-uncommon, .wanderer-app .essence-row.rarity-uncommon, .wanderer-app .item-row.rarity-uncommon { border-left-color: var(--wd-uncommon); }
+.wanderer-app .rune-row.rarity-rare, .wanderer-app .essence-row.rarity-rare, .wanderer-app .item-row.rarity-rare { border-left-color: var(--wd-rare); }
+.wanderer-app .rune-row.rarity-veryRare, .wanderer-app .essence-row.rarity-veryRare, .wanderer-app .item-row.rarity-veryRare { border-left-color: var(--wd-veryRare); }
+.wanderer-app .rune-row.rarity-legendary, .wanderer-app .essence-row.rarity-legendary, .wanderer-app .item-row.rarity-legendary { border-left-color: var(--wd-legendary); }
+.wanderer-app .rune-row.rarity-artifact, .wanderer-app .essence-row.rarity-artifact, .wanderer-app .item-row.rarity-artifact { border-left-color: var(--wd-artifact); }
+
+/* ---------- Core window layout ---------- */
+
+.wanderer-core .wanderer-core-body {
+  display: grid;
+  grid-template-columns: 410px minmax(0, 1fr);
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.wanderer-core .torso-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.wanderer-core .torso {
+  position: relative;
+  width: 100%;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--wd-border);
+  background: #0a0e16;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(45, 155, 255, 0.08);
+}
+
+.wanderer-core .sheet-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.wanderer-core .sheet {
+  display: block;
+  max-width: none;
+  height: auto;
+  border: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.wanderer-core .vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 35%, transparent 45%, rgba(5, 8, 14, 0.78) 100%);
+}
+
+.wanderer-core .links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.wanderer-core .link {
+  stroke: rgba(80, 120, 170, 0.28);
+  stroke-width: 2px;
+  stroke-dasharray: 4 6;
+}
+
+.wanderer-core .link.lit {
+  stroke: var(--wd-blue);
+  stroke-dasharray: none;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 4px var(--wd-blue));
+}
+
+.wanderer-core .link.forging {
+  stroke: var(--wd-amber);
+  stroke-dasharray: 3 5;
+  animation: wd-march 1.2s linear infinite;
+}
+
+/* ---------- Slots ---------- */
+
+.wanderer-core .slot {
+  position: absolute;
+  width: var(--slot-size, 54px);
+  height: var(--slot-size, 54px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 0.15s ease;
+}
+
+.wanderer-core .slot > * {
+  grid-area: 1 / 1;
+}
+
+.wanderer-core .slot:hover,
+.wanderer-core .slot.inspected {
+  transform: translate(-50%, -50%) scale(1.08);
+  z-index: 2;
+}
+
+.wanderer-core .slot .ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(124, 196, 255, 0.35);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+  background: radial-gradient(circle, rgba(10, 14, 22, 0.55) 55%, rgba(10, 14, 22, 0.1) 100%);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.wanderer-core .slot.empty .ring {
+  border-style: dashed;
+  border-color: rgba(124, 196, 255, 0.3);
+}
+
+.wanderer-core .slot.empty:hover .ring,
+.wanderer-core .slot.empty.inspected .ring {
+  border-color: rgba(124, 196, 255, 0.7);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6), 0 0 10px var(--wd-blue-dim);
+}
+
+.wanderer-core .slot.empty.core-slot.editable .ring {
+  border-color: rgba(255, 181, 71, 0.55);
+}
+
+.wanderer-core .slot .socket {
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #0a0e16 40%, #1a2436 100%);
+  box-shadow: inset 0 0 6px #000, 0 0 0 1px rgba(124, 196, 255, 0.2);
+}
+
+.wanderer-core .slot.filled .ring {
+  border-color: var(--wd-blue-soft);
+  animation: wd-pulse 2.8s ease-in-out infinite;
+}
+
+.wanderer-core .slot.filled.core-slot .ring {
+  border-color: #c6e6ff;
+  animation: wd-pulse-core 3.2s ease-in-out infinite;
+}
+
+.wanderer-core .slot .icon {
+  width: 74%;
+  height: 74%;
+  border-radius: 50%;
+  border: none;
+  object-fit: cover;
+  background: #0a0e16;
+  filter: drop-shadow(0 0 6px var(--wd-blue));
+}
+
+.wanderer-core .slot.forging .ring {
+  border-color: var(--wd-amber);
+  animation: wd-forge 1.6s ease-in-out infinite;
+}
+
+.wanderer-core .slot .progress {
+  width: 114%;
+  height: 114%;
+  transform: rotate(-90deg);
+  pointer-events: none;
+  overflow: visible;
+}
+
+.wanderer-core .slot .progress circle {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.wanderer-core .slot .progress .track {
+  stroke: rgba(255, 181, 71, 0.2);
+}
+
+.wanderer-core .slot .progress .fill {
+  stroke: var(--wd-amber);
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  filter: drop-shadow(0 0 3px var(--wd-amber));
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.wanderer-core .slot .label {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wd-muted);
+  text-shadow: 0 1px 3px #000, 0 0 6px #000;
+  pointer-events: none;
+}
+
+.wanderer-core .slot.filled .label,
+.wanderer-core .slot.inspected .label {
+  color: var(--wd-blue-soft);
+}
+
+.wanderer-core .slot.forging .label {
+  color: var(--wd-amber);
+}
+
+@keyframes wd-pulse {
+  0%, 100% { box-shadow: 0 0 14px 3px var(--wd-blue-dim), inset 0 0 12px rgba(45, 155, 255, 0.45); }
+  50% { box-shadow: 0 0 24px 7px rgba(45, 155, 255, 0.55), inset 0 0 18px rgba(45, 155, 255, 0.7); }
+}
+
+@keyframes wd-pulse-core {
+  0%, 100% { box-shadow: 0 0 22px 6px rgba(45, 155, 255, 0.45), inset 0 0 16px rgba(124, 196, 255, 0.55); }
+  50% { box-shadow: 0 0 36px 12px rgba(45, 155, 255, 0.65), inset 0 0 24px rgba(124, 196, 255, 0.8); }
+}
+
+@keyframes wd-forge {
+  0%, 100% { box-shadow: 0 0 10px 2px rgba(255, 181, 71, 0.25), inset 0 0 10px rgba(255, 181, 71, 0.2); }
+  50% { box-shadow: 0 0 20px 6px rgba(255, 181, 71, 0.5), inset 0 0 16px rgba(255, 181, 71, 0.4); }
+}
+
+@keyframes wd-march {
+  to { stroke-dashoffset: -16; }
+}
+
+.wanderer-core .torso-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--wd-muted);
+  padding: 0 4px;
+  gap: 8px;
+}
+
+.wanderer-core .torso-footer .status.on {
+  color: var(--wd-blue-soft);
+}
+
+/* ---------- Side pane ---------- */
+
+.wanderer-core .side-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+.wanderer-core .card {
+  background: var(--wd-panel);
+  border: 1px solid var(--wd-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  flex: 0 0 auto;
+}
+
+.wanderer-core .inspect-card {
+  display: none;
+}
+
+.wanderer-core .inspect-card.active {
+  display: block;
+}
+
+.wanderer-core .inspect-card header {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.wanderer-core .slot-name {
+  font-weight: 700;
+  color: var(--wd-blue-soft);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.wanderer-core .item-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+  min-width: 0;
+}
+
+.wanderer-core .item-head img {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid var(--wd-border);
+  object-fit: cover;
+  background: #0a0e16;
+  flex: 0 0 auto;
+}
+
+.wanderer-core .item-head strong {
+  font-size: 14px;
+}
+
+.wanderer-core .effect {
+  margin: 4px 0;
+  line-height: 1.45;
+  font-size: 13px;
+}
+
+.wanderer-core .flavor {
+  font-style: italic;
+  color: var(--wd-muted);
+  margin: 4px 0;
+  line-height: 1.45;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+}
+
+.wanderer-core .description {
+  font-size: 12px;
+  max-height: 180px;
+  overflow: auto;
+  line-height: 1.4;
+}
+
+.wanderer-core .description p {
+  margin: 0 0 6px;
+}
+
+/* Crafting bench */
+
+.wanderer-core .bar {
+  height: 12px;
+  border-radius: 6px;
+  background: #0a0e16;
+  border: 1px solid var(--wd-border);
+  overflow: hidden;
+  margin: 6px 0 4px;
+}
+
+.wanderer-core .bar .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1e6fd6, #4fb3ff);
+  box-shadow: 0 0 10px var(--wd-blue);
+  transition: width 0.3s ease;
+}
+
+.wanderer-core .project.complete .bar .fill {
+  background: linear-gradient(90deg, #2a9d6b, #4fd29a);
+  box-shadow: 0 0 10px var(--wd-uncommon);
+}
+
+.wanderer-core .project.invalid .bar .fill {
+  background: linear-gradient(90deg, #7a3a3a, #b85c5c);
+  box-shadow: none;
+}
+
+.wanderer-core .days {
+  font-size: 12px;
+  color: var(--wd-muted);
+}
+
+.wanderer-core .gm-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--wd-border);
+}
+
+.wanderer-core .gm-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--wd-amber);
+  margin-right: 4px;
+}
+
+/* Essences */
+
+.wanderer-core .essence-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wanderer-core .essence-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border: 1px solid var(--wd-border);
+  border-radius: 6px;
+  background: rgba(10, 14, 22, 0.5);
+  cursor: grab;
+}
+
+.wanderer-core .essence-row img {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: none;
+  flex: 0 0 auto;
+}
+
+.wanderer-core .essence-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.wanderer-core .essence-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Rune picker ---------- */
+
+.wanderer-picker .picker-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 8px;
+}
+
+.wanderer-picker .picker-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.wanderer-picker .picker-head .target strong {
+  color: var(--wd-blue-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.wanderer-picker .picker-head .search {
+  flex: 0 0 240px;
+}
+
+.wanderer-picker .tabs {
+  border-bottom: 1px solid var(--wd-border);
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.wanderer-picker .tabs .item {
+  padding: 6px 12px;
+  color: var(--wd-muted);
+  border-bottom: 2px solid transparent;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wanderer-picker .tabs .item.active {
+  color: var(--wd-blue-soft);
+  border-bottom-color: var(--wd-blue);
+  text-shadow: none;
+}
+
+.wanderer-picker .picker-body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.wanderer-picker .picker-body .tab {
+  display: none;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.wanderer-picker .picker-body .tab.active {
+  display: block;
+}
+
+.wanderer-picker .days-note {
+  color: var(--wd-muted);
+  font-size: 12px;
+  margin: 2px 0 8px;
+}
+
+.wanderer-app .rune-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px;
+  border: 1px solid var(--wd-border);
+  border-left-width: 3px;
+  border-radius: 6px;
+  background: rgba(10, 14, 22, 0.5);
+  margin-bottom: 6px;
+}
+
+.wanderer-app .rune-row.available {
+  cursor: grab;
+}
+
+.wanderer-app .rune-row.available:hover {
+  border-color: var(--wd-blue);
+  box-shadow: 0 0 8px var(--wd-blue-dim);
+}
+
+.wanderer-app .rune-row.hidden {
+  display: none;
+}
+
+.wanderer-app .rune-row.taken,
+.wanderer-app .rune-row.locked,
+.wanderer-app .rune-row.disabled {
+  opacity: 0.55;
+}
+
+.wanderer-app .rune-row .rune-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  border: none;
+}
+
+.wanderer-app .rune-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.wanderer-app .rune-name {
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wanderer-app .rune-effect {
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 2px 0;
+}
+
+.wanderer-app .rune-flavor {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--wd-muted);
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.45;
+}
+
+.wanderer-app .rune-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.wanderer-app .rune-actions small {
+  opacity: 0.75;
+}
+
+.wanderer-app .req {
+  font-size: 11px;
+  color: var(--wd-amber);
+  font-weight: 400;
+}
+
+/* ---------- Disenchant dialog ---------- */
+
+.wanderer-disenchant .item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.wanderer-disenchant .item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border: 1px solid var(--wd-border);
+  border-radius: 6px;
+  background: rgba(10, 14, 22, 0.5);
+}
+
+.wanderer-disenchant .item-row img {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: none;
+}
+
+.wanderer-disenchant .item-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.wanderer-disenchant .item-name {
+  font-weight: 600;
+}
+
+/* ---------- Rune library ---------- */
+
+.wanderer-library .library-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 8px;
+}
+
+.wanderer-library .library-head {
+  flex: 0 0 auto;
+}
+
+.wanderer-library .library-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.wanderer-library .library-body h3 {
+  margin: 10px 0 6px;
+}
+
+/* ---------- Layout editor ---------- */
+
+.wanderer-layout .layout-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wanderer-layout .layout-table th,
+.wanderer-layout .layout-table td {
+  padding: 3px 4px;
+  font-size: 12px;
+  text-align: left;
+  color: var(--wd-muted);
+}
+
+.wanderer-layout .layout-table input {
+  width: 100%;
+}
+
+/* ---------- Chat ---------- */
+
+.wanderer-chat {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border-left: 3px solid #2d9bff;
+  background: rgba(45, 155, 255, 0.08);
+  border-radius: 4px;
+  font-style: italic;
+}
+
+.wanderer-chat i {
+  color: #2d9bff;
+}

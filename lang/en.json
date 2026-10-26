@@ -1,0 +1,202 @@
+{
+  "WANDERER": {
+    "App": {
+      "title": "{name} — Core",
+      "inspect": "Inspect",
+      "crafting": "Crafting",
+      "essences": "Essences",
+      "designated": "Designated as the Wanderer",
+      "notDesignated": "Not designated — the core is only visible to the GM",
+      "coreEmpty": "The core is empty. The GM may seat a passive item here.",
+      "coreDropHint": "Drop an item from the sidebar, a compendium or an inventory onto the core.",
+      "nodeEmpty": "Nothing is carved here. Choose a rune, or drop an essence or one of your magic items to begin.",
+      "chooseRune": "Choose a rune",
+      "open": "Open",
+      "remove": "Remove",
+      "noProject": "Nothing on the bench. Click an empty node to begin a project.",
+      "forging": "Forging",
+      "forgingInto": "into {slot}",
+      "days": "{done} / {total} days",
+      "work": "Work for a day",
+      "workedToday": "Already worked today. Available after a long rest or when the day turns.",
+      "install": "Install",
+      "abandon": "Abandon",
+      "complete": "Complete — ready to install",
+      "projectInvalid": "The source of this project is missing.",
+      "noEssences": "No essences. Disenchant a magic item to harvest one.",
+      "disenchant": "Disenchant an item…",
+      "slotEssence": "Slot…",
+      "gmTools": "GM tools",
+      "library": "Rune library",
+      "layout": "Layout",
+      "newDay": "New day",
+      "newDayHint": "Reset the once-per-day allowance",
+      "addDays": "Add days",
+      "finish": "Finish now",
+      "designate": "Designate",
+      "revoke": "Revoke",
+      "emptyTooltip": "{label}: empty",
+      "magicCount": "{count} magic item(s) could be disenchanted",
+      "instantEssence": "Essences slot instantly.",
+      "timedEssence": "Essences take the crafting time of their rarity.",
+      "dragHint": "Drag onto a node",
+      "worldDay": "World day {day}"
+    },
+    "Kind": {
+      "rune": "Rune",
+      "essence": "Essence",
+      "core": "Core item",
+      "item": "Item"
+    },
+    "Rarity": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "veryRare": "Very rare",
+      "legendary": "Legendary",
+      "artifact": "Artifact"
+    },
+    "ItemName": {
+      "rune": "Rune: {name}",
+      "node": "Node: {name}",
+      "core": "Core: {name}",
+      "essence": "Essence of {name}"
+    },
+    "Essence": {
+      "harvestedFrom": "Harvested from {name}. Slot it into a node of the Wanderer's core to carry its power."
+    },
+    "Picker": {
+      "title": "Carve — {slot}",
+      "target": "Carving into",
+      "search": "Search runes…",
+      "daysNote": "{days} days of work to carve",
+      "carve": "Carve",
+      "carved": "Carved",
+      "locked": "Locked",
+      "requires": "requires {name}",
+      "essences": "Essences",
+      "slot": "Slot",
+      "noEssences": "No essences in the inventory.",
+      "essenceDays": "{days} days",
+      "instant": "instant"
+    },
+    "Craft": {
+      "replaceProject": "Abandon the current project ({name}) and lose its progress?",
+      "replaceSlot": "{slot} already holds {name}. Replace it?",
+      "alreadyWorked": "The Wanderer has already worked today.",
+      "noProject": "There is no active project.",
+      "abandonConfirm": "Abandon {name}? All progress is lost.",
+      "sourceMissing": "The source of this project ({name}) no longer exists.",
+      "runeTaken": "{name} is already carved into the core.",
+      "requiresRune": "{name} requires {req} to be carved first.",
+      "addDaysTitle": "Add days of progress",
+      "addDaysLabel": "Days",
+      "notOwner": "You do not own this actor."
+    },
+    "Chat": {
+      "worked": "{actor} works on {name} ({done}/{total} days).",
+      "installed": "{name} is set into {slot}.",
+      "disenchanted": "{actor} breaks down {item} and draws out its essence.",
+      "coreSet": "{name} is seated in the Wanderer's core.",
+      "removed": "{name} is pried out of {slot}."
+    },
+    "Drop": {
+      "coreGmOnly": "Only the GM can place something in the core.",
+      "setCore": "Seat {name} in the core?",
+      "gmNodeTitle": "{name} → {slot}",
+      "gmNodeContent": "Install it directly, bypassing crafting, or disenchant it into an essence and begin crafting?",
+      "install": "Install directly",
+      "craft": "Disenchant & craft",
+      "disenchantConfirm": "Disenchant {name}? The item is destroyed, its essence is harvested, and crafting into {slot} begins.",
+      "notAllowed": "Only essences or magic items from the Wanderer's own inventory can be dropped on a node.",
+      "runeOnCore": "Runes cannot be carved into the core."
+    },
+    "Disenchant": {
+      "title": "Disenchant",
+      "intro": "Break a magic item down into an essence. The item is destroyed; the essence can later be slotted into a node.",
+      "none": "No magic items in the inventory.",
+      "button": "Disenchant",
+      "confirm": "Destroy {name} and harvest its essence?",
+      "attuned": "attuned"
+    },
+    "Remove": {
+      "confirm": "Remove {name} from {slot}? Runes are lost; essences return to the inventory.",
+      "coreGmOnly": "Only the GM can remove the core item."
+    },
+    "Designate": {
+      "confirm": "Designate {name} as the Wanderer? This enables the core for the actor's owners.",
+      "revoke": "Revoke the Wanderer designation from {name}?",
+      "none": "No actor is designated as the Wanderer. Open a character sheet as GM and use its Core button."
+    },
+    "Sheet": {
+      "button": "Core"
+    },
+    "Control": {
+      "open": "Open the Wanderer's Core"
+    },
+    "ChooseNode": {
+      "title": "Choose a node for {name}",
+      "empty": "empty"
+    },
+    "Settings": {
+      "daysCommon": { "name": "Crafting days: Common", "hint": "Days of work to craft a common rune or essence." },
+      "daysUncommon": { "name": "Crafting days: Uncommon", "hint": "Days of work to craft an uncommon rune or essence (DMG: 10)." },
+      "daysRare": { "name": "Crafting days: Rare", "hint": "Days of work to craft a rare rune or essence (DMG: 50)." },
+      "daysVeryRare": { "name": "Crafting days: Very rare", "hint": "Days of work to craft a very rare rune or essence (DMG: 125)." },
+      "daysLegendary": { "name": "Crafting days: Legendary", "hint": "Days of work to slot a legendary essence (DMG: 250)." },
+      "essenceInstant": { "name": "Essences slot instantly", "hint": "If enabled, slotting a disenchanted essence takes no crafting time. Otherwise it takes the crafting days of its rarity." },
+      "chatMessages": { "name": "Post crafting messages to chat", "hint": "Announce work days, completed carvings and disenchanting in the chat log." },
+      "sheetImage": { "name": "Core image", "hint": "The image shown behind the slots. The default is the Wanderer concept sheet; use the Layout menu to frame it." },
+      "libraryMenu": { "name": "Rune library", "label": "Open the rune library", "hint": "Add, edit, disable or remove runes available for carving." },
+      "layoutMenu": { "name": "Core layout", "label": "Edit the layout", "hint": "Position the four slots over the image and set the image crop." }
+    },
+    "Library": {
+      "title": "Rune library",
+      "add": "Add a rune",
+      "edit": "Edit",
+      "disable": "Disable",
+      "enable": "Enable",
+      "delete": "Delete",
+      "reset": "Reset to built-in",
+      "builtin": "built-in",
+      "custom": "custom",
+      "override": "edited",
+      "disabled": "disabled",
+      "deleteConfirm": "Delete the custom rune {name}?",
+      "resetConfirm": "Discard your edits to {name} and restore the built-in version?",
+      "form": {
+        "title": "Rune",
+        "name": "Name",
+        "rarity": "Rarity",
+        "effect": "Effect",
+        "flavor": "Flavor",
+        "requires": "Requires",
+        "none": "— none —",
+        "activation": "Activation",
+        "usesMax": "Uses",
+        "usesPer": "Per",
+        "img": "Icon",
+        "save": "Save",
+        "cancel": "Cancel",
+        "nameRequired": "A rune needs a name."
+      }
+    },
+    "Layout": {
+      "title": "Core layout",
+      "intro": "Slot positions are percentages of the framed image. The crop is in pixels of the source image.",
+      "crop": "Image crop",
+      "cropX": "Left",
+      "cropY": "Top",
+      "cropW": "Width",
+      "cropH": "Height",
+      "sheet": "Source image size",
+      "slots": "Slots",
+      "label": "Label",
+      "x": "X %",
+      "y": "Y %",
+      "size": "Size (px)",
+      "save": "Save",
+      "reset": "Reset to default"
+    }
+  }
+}

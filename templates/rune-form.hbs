@@ -1,0 +1,37 @@
+<form class="rune-form" autocomplete="off">
+  <div class="form-group">
+    <label>{{localize "WANDERER.Library.form.name"}}</label>
+    <input type="text" name="name" value="{{rune.name}}" required>
+  </div>
+  <div class="form-group">
+    <label>{{localize "WANDERER.Library.form.rarity"}}</label>
+    <select name="rarity">{{selectOptions rarities selected=rune.rarity}}</select>
+  </div>
+  <div class="form-group stacked">
+    <label>{{localize "WANDERER.Library.form.effect"}}</label>
+    <textarea name="effect" rows="3">{{rune.effect}}</textarea>
+  </div>
+  <div class="form-group stacked">
+    <label>{{localize "WANDERER.Library.form.flavor"}}</label>
+    <textarea name="flavor" rows="2">{{rune.flavor}}</textarea>
+  </div>
+  <div class="form-group">
+    <label>{{localize "WANDERER.Library.form.requires"}}</label>
+    <select name="requires">{{selectOptions requiresOptions selected=rune.requires blank=noneLabel}}</select>
+  </div>
+  <div class="form-group">
+    <label>{{localize "WANDERER.Library.form.activation"}}</label>
+    <select name="activation">{{selectOptions activations selected=rune.activation blank=noneLabel}}</select>
+  </div>
+  <div class="form-group">
+    <label>{{localize "WANDERER.Library.form.usesMax"}}</label>
+    <input type="number" name="uses.max" value="{{rune.uses.max}}" min="0" step="1" data-dtype="Number">
+    <label class="inline">{{localize "WANDERER.Library.form.usesPer"}}</label>
+    <select name="uses.per">{{selectOptions usesPer selected=rune.uses.per blank=noneLabel}}</select>
+  </div>
+  <div class="form-group">
+    <label>{{localize "WANDERER.Library.form.img"}}</label>
+    <input type="text" name="img" value="{{imgValue}}" placeholder="modules/wanderer/assets/icons/rune.svg">
+    <button type="button" class="file-picker icon-btn" data-type="image" data-target="img"><i class="fas fa-file-import fa-fw"></i></button>
+  </div>
+</form>

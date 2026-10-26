@@ -1,0 +1,255 @@
+/**
+ * The built-in rune library, transcribed from the Wanderer's rune tables.
+ *
+ * Each rune:
+ *   id         slug, stable across versions (saved on carved items)
+ *   name       display name
+ *   rarity     "uncommon" | "rare" | "veryRare" (any dnd5e rarity is accepted)
+ *   effect     rules text
+ *   flavor     italic flavor line
+ *   requires   (optional) id of a rune that must already be carved
+ *   activation (optional) dnd5e activation type for the created item
+ *   uses       (optional) { max, per } for limited-use runes ("sr" | "lr" | "day")
+ *   effects    (optional) Active Effects applied while the rune is carved
+ */
+
+const ADD = 2;      // CONST.ACTIVE_EFFECT_MODES.ADD
+const UPGRADE = 4;  // CONST.ACTIVE_EFFECT_MODES.UPGRADE
+const OVERRIDE = 5; // CONST.ACTIVE_EFFECT_MODES.OVERRIDE
+
+export const BUILTIN_RUNES = [
+  // ───────────────────────── Uncommon ─────────────────────────
+  {
+    id: "titans-grip", name: "Titan's Grip", rarity: "uncommon",
+    effect: "Grapple and shove creatures up to Huge; dragging a grappled creature costs no extra movement.",
+    flavor: "The first thing the makers taught a body of stone was how to hold on. The second was how not to let go."
+  },
+  {
+    id: "rooted", name: "Rooted", rarity: "uncommon",
+    effect: "Can't be knocked prone or moved against his will by creatures his size or smaller.",
+    flavor: "A mountain does not step aside. It was not asked, and it would not have understood the question."
+  },
+  {
+    id: "runic-fist", name: "Runic Fist", rarity: "uncommon",
+    effect: "Unarmed strikes are magical and deal 1d8 bludgeoning.",
+    flavor: "Every line carved into a knuckle is a word, and every word is the same word, and the word is enough."
+  },
+  {
+    id: "recall", name: "Recall", rarity: "uncommon",
+    effect: "+1 Intelligence (max 20); he reads and speaks the old Elvish fully.",
+    flavor: "The rune does not add. It remembers. Somewhere under the scoring, the lessons were always there.",
+    effects: [{ name: "Recall", changes: [{ key: "system.abilities.int.value", mode: ADD, value: "1", priority: 20 }] }]
+  },
+  {
+    id: "sure-footing", name: "Sure Footing", rarity: "uncommon",
+    effect: "Difficult terrain doesn't slow him; standing from prone costs 5 ft.",
+    flavor: "Rubble, ice, the dead, the dying — the ground is only ever the ground."
+  },
+  {
+    id: "lodestone", name: "Lodestone", rarity: "uncommon",
+    effect: "Start of his turn: one creature within 10 ft must make a Strength save or be pulled 5 ft toward him.",
+    flavor: "Iron finds the stone. It has never been the other way round."
+  },
+  {
+    id: "counterweight", name: "Counterweight", rarity: "uncommon",
+    effect: "Reaction: when a creature fails to grapple or shove him, he grapples or shoves it.",
+    flavor: "They put their hands on him. That was their mistake. Now they are his.",
+    activation: "reaction"
+  },
+  {
+    id: "deadweight", name: "Deadweight", rarity: "uncommon",
+    effect: "Counts as Huge for being lifted, carried, swallowed, or moved by wind and water.",
+    flavor: "Three things in this world will not be carried off: a debt, a grudge, and this."
+  },
+  {
+    id: "tremor-step", name: "Tremor Step", rarity: "uncommon",
+    effect: "Tremorsense 10 ft; always knows which way is down, and how far.",
+    flavor: "He hears the earth the way others hear a room — who is in it, who is coming, and where the floor ends.",
+    effects: [{ name: "Tremor Step", changes: [{ key: "system.attributes.senses.tremorsense", mode: UPGRADE, value: "10", priority: 20 }] }]
+  },
+  {
+    id: "ley-sight", name: "Ley-Sight", rarity: "uncommon",
+    effect: "Sees magical auras within 30 ft as a faint cyan haze (passive detect magic).",
+    flavor: "Light runs in the world like water in a wall. Most eyes were not made to see it leak."
+  },
+  {
+    id: "elven-protocol", name: "Elven Protocol", rarity: "uncommon",
+    effect: "Doors and locks of elven make open, close or hold at his word, unless warded against his kind.",
+    flavor: "The old houses remember who built them. A knock in the right language is still a key."
+  },
+  {
+    id: "fulcrum", name: "Fulcrum", rarity: "uncommon",
+    effect: "Swap places with a creature he's grappling as part of his movement; no opportunity attacks.",
+    flavor: "Where he stands is a decision. He has simply decided for both of you."
+  },
+  {
+    id: "catch", name: "Catch", rarity: "uncommon",
+    effect: "Reaction: a creature falling, thrown or knocked past him is caught, takes no fall damage, lands beside him.",
+    flavor: "Everything that falls is looking for something solid. Here is something solid.",
+    activation: "reaction"
+  },
+  {
+    id: "trip-line", name: "Trip Line", rarity: "uncommon",
+    effect: "Reaction when a creature leaves his reach: Strength check vs its Dex save; on a win it falls prone instead. Once per turn.",
+    flavor: "Leaving is a thing you do with your legs. He would like a word with your legs.",
+    activation: "reaction"
+  },
+  {
+    id: "builders-eye", name: "Builder's Eye", rarity: "uncommon",
+    effect: "Advantage to break, force or dismantle objects and structures; reads what a mechanism does at a glance.",
+    flavor: "A wall is a list of places it will fail. He can read the list."
+  },
+
+  // ─────────────────────────── Rare ───────────────────────────
+  {
+    id: "hurl", name: "Hurl", rarity: "rare",
+    effect: "Shoving a grappled creature can throw it up to 20 ft: prone, 1d6 per 10 ft, and the same to whatever it lands on.",
+    flavor: "There is an argument for picking things up and an argument for putting them down. He has combined them."
+  },
+  {
+    id: "capacitor", name: "Capacitor", rarity: "rare",
+    effect: "Takes half the damage from spells and magical effects as charge (up to 20; full damage still taken); next melee hit deals the charge as force. Fades end of next turn.",
+    flavor: "Burn him and the fire goes somewhere. It goes into the fist. It comes back out."
+  },
+  {
+    id: "overload", name: "Overload", rarity: "rare",
+    effect: "1/LR, first time below half HP: 10 ft burst, Dex save (DC 8 + PB + Con), 5d8 force, half on save. Variant: hits allies too until recarved.",
+    flavor: "The lines were cut to hold a great deal. Nobody said what happens when they are asked to hold more.",
+    activation: "special", uses: { max: 1, per: "lr" }
+  },
+  {
+    id: "bulwark", name: "Bulwark", rarity: "rare",
+    effect: "Reaction: when an ally within 5 ft is hit, he takes the hit instead.",
+    flavor: "A shield that walks, and chooses what it shields, and is not sorry.",
+    activation: "reaction"
+  },
+  {
+    id: "colossus", name: "Colossus", rarity: "rare",
+    effect: "Bonus action, 1/LR, 1 min: Large, reach 10 ft, +1d4 melee damage, advantage on Strength checks and saves.",
+    flavor: "The makers built him to a size the doors would allow. The doors were a courtesy.",
+    activation: "bonus", uses: { max: 1, per: "lr" }
+  },
+  {
+    id: "living-wall", name: "Living Wall", rarity: "rare",
+    effect: "Allies move through his space; enemies treat every square within 5 ft of him as difficult terrain.",
+    flavor: "You may go around. Going around takes a while. That is rather the point."
+  },
+  {
+    id: "slam", name: "Slam", rarity: "rare",
+    effect: "Throwing, shoving or dropping a creature into a wall, floor, object or creature adds 2d6 and can knock it prone.",
+    flavor: "Every surface is an anvil if you are holding the hammer by the throat."
+  },
+  {
+    id: "chain-gang", name: "Chain-Gang", rarity: "rare",
+    effect: "Grapples two creatures at once, one in each hand; full speed if both are Medium or smaller.",
+    flavor: "Two hands. Two problems. The arithmetic is not complicated."
+  },
+  {
+    id: "earthbind", name: "Earthbind", rarity: "rare",
+    effect: "A grappled flyer loses its flying speed and falls if released aloft; a shoved flyer must save or be knocked 20 ft down.",
+    flavor: "The sky is for those the ground has let go of. He has not let go."
+  },
+  {
+    id: "spite-core", name: "Spite Core", rarity: "rare",
+    effect: "While grappling a creature, whenever he takes damage, it takes half as force.",
+    flavor: "Hurt him and the stone remembers it — and the stone is holding someone."
+  },
+  {
+    id: "rally-core", name: "Rally Core", rarity: "rare",
+    effect: "On entering rage, allies within 10 ft gain temp HP (PB + Con), and one sentence of his carries over any noise.",
+    flavor: "Old bells were cast to be heard through battle. So, it turns out, was he."
+  },
+  {
+    id: "unmaking-hand", name: "Unmaking Hand", rarity: "rare",
+    effect: "Melee hits deal double damage to objects and structures and ignore constructs' bludgeoning resistance.",
+    flavor: "Whatever was made can be unmade, and the hand that knows how a thing was joined knows where it parts."
+  },
+  {
+    id: "fastball", name: "Fastball", rarity: "rare",
+    effect: "Action: throw a willing Medium-or-smaller ally up to 30 ft; they land on their feet, may use their reaction for one weapon attack, no fall damage.",
+    flavor: "Trust is a short flight and a hard landing. Ask the goblin.",
+    activation: "action"
+  },
+  {
+    id: "vise", name: "Vise", rarity: "rare",
+    effect: "A grappled creature takes bludgeoning equal to his Strength modifier at the start of each of its turns; disadvantage to escape if his size or smaller.",
+    flavor: "It is not a grip. A grip lets go eventually. This is a closing."
+  },
+  {
+    id: "juggernaut", name: "Juggernaut", rarity: "rare",
+    effect: "Moving 10 ft straight, he passes through Large-or-smaller creatures; each must save or be shoved aside and knocked prone.",
+    flavor: "The shortest path between two points is a line through everyone standing on it."
+  },
+  {
+    id: "shockwave", name: "Shockwave", rarity: "rare",
+    effect: "Action, 1/short rest: strike the ground; creatures within 10 ft save or fall prone; the area is difficult terrain until end of his next turn.",
+    flavor: "He said something to the floor. The floor passed it on.",
+    activation: "action", uses: { max: 1, per: "sr" }
+  },
+  {
+    id: "wrecking-yard", name: "Wrecking Yard", rarity: "rare",
+    effect: "Throws objects up to Large as improvised weapons: 20/60 ft, 2d8; a Huge creature hit is pushed 5 ft.",
+    flavor: "Carts, statues, the better sort of furniture. The world is full of things that would like to be thrown."
+  },
+
+  // ───────────────────────── Very rare ─────────────────────────
+  {
+    id: "keystone", name: "Keystone", rarity: "veryRare",
+    effect: "A creature he's grappling has disadvantage on attacks against anyone but him; dragging it is free.",
+    flavor: "Pull one stone from the arch and the whole thing comes down. He is the stone, and he has your attention."
+  },
+  {
+    id: "unstable-core-ii", name: "Unstable Core II", rarity: "veryRare",
+    effect: "Overload becomes 7d8, pushes 10 ft, and he chooses who it hits. Requires Overload.",
+    flavor: "What was once a flaw in the carving is now a decision. That is the only difference between a fault and a weapon.",
+    requires: "overload"
+  },
+  {
+    id: "stillness", name: "Stillness", rarity: "veryRare",
+    effect: "Can rage as a reaction when an ally within 30 ft is hit; can hold rage without attacking.",
+    flavor: "The old masters did not rage. They decided, and the deciding looked much the same from outside.",
+    activation: "reaction"
+  },
+  {
+    id: "return-of-mind", name: "Return of Mind", rarity: "veryRare",
+    effect: "+2 Intelligence (max 22); proficiency in Int and Wis saves. 1/LR, ask the DM one question about his own making and receive a true answer as a memory.",
+    flavor: "Not every scar is damage. Some are the places where the writing was, waiting to be read again.",
+    activation: "special", uses: { max: 1, per: "lr" },
+    effects: [{
+      name: "Return of Mind",
+      changes: [
+        { key: "system.abilities.int.value", mode: ADD, value: "2", priority: 20 },
+        { key: "system.abilities.int.proficient", mode: OVERRIDE, value: "1", priority: 20 },
+        { key: "system.abilities.wis.proficient", mode: OVERRIDE, value: "1", priority: 20 }
+      ]
+    }]
+  },
+  {
+    id: "pile-driver", name: "Pile Driver", rarity: "veryRare",
+    effect: "Action, 1/short rest: leap 20 ft with a grappled creature and come down on it — both take fall damage (he takes half); it lands prone, stunned until end of its next turn on a failed Con save.",
+    flavor: "Up is a short trip. Down is a longer conversation.",
+    activation: "action", uses: { max: 1, per: "sr" }
+  },
+  {
+    id: "vault-door", name: "Vault Door", rarity: "veryRare",
+    effect: "Action: brace in a gap up to 10 ft wide; nothing Huge or smaller passes by any means but teleportation until he moves or falls.",
+    flavor: "There are doors with locks and doors with guards. He is a third kind.",
+    activation: "action"
+  },
+  {
+    id: "anvil", name: "Anvil", rarity: "veryRare",
+    effect: "Creatures he knocks prone can't stand until the end of their next turn; melee attacks against prone creatures crit on 19–20.",
+    flavor: "What is down stays down long enough to regret it."
+  },
+  {
+    id: "kinetic-lock", name: "Kinetic Lock", rarity: "veryRare",
+    effect: "Reaction, 1/short rest: a creature within 30 ft starting to move must save or have speed 0 until end of its turn and be pulled 10 ft toward him.",
+    flavor: "Motion is borrowed. He has decided it is time to collect.",
+    activation: "reaction", uses: { max: 1, per: "sr" }
+  },
+  {
+    id: "rune-burn", name: "Rune-Burn", rarity: "veryRare",
+    effect: "Once per turn on a melee hit: until end of his next turn the target has disadvantage on attacks against others, and takes 2d8 force if it willingly moves away from him.",
+    flavor: "The mark is not deep, but it is hot, and it points one way: at him."
+  }
+];

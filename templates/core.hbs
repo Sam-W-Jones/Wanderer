@@ -1,0 +1,162 @@
+<div class="wanderer-core-body{{#if isGM}} gm{{/if}}">
+  <section class="torso-pane">
+    <div class="torso" style="aspect-ratio: {{image.aspect}};">
+      <div class="sheet-clip">
+        <img class="sheet" src="{{image.src}}" alt="" draggable="false"
+             style="width: {{image.widthPct}}%; margin-left: -{{image.offXPct}}%; margin-top: -{{image.offYPct}}%;">
+      </div>
+      <div class="vignette"></div>
+      <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        {{#each links}}
+        <line class="link{{#if lit}} lit{{/if}}{{#if forging}} forging{{/if}}"
+              x1="{{x1}}" y1="{{y1}}" x2="{{x2}}" y2="{{y2}}" vector-effect="non-scaling-stroke"/>
+        {{/each}}
+      </svg>
+      {{#each slots}}
+      <div class="slot {{id}}{{#if item}} filled{{else}} empty{{/if}}{{#if isProject}} forging{{/if}}{{#if inspected}} inspected{{/if}}{{#if isCore}} core-slot{{/if}}{{#if canEdit}} editable{{/if}}"
+           data-slot="{{id}}" data-tooltip="{{tooltip}}"
+           style="left: {{x}}%; top: {{y}}%; --slot-size: {{size}}px;">
+        <div class="ring"></div>
+        {{#if item}}
+        <img class="icon" src="{{item.img}}" alt="" draggable="false">
+        {{else}}
+        <div class="socket"></div>
+        {{/if}}
+        {{#if isProject}}
+        <svg class="progress" viewBox="0 0 36 36" aria-hidden="true">
+          <circle class="track" cx="18" cy="18" r="16" pathLength="100"/>
+          <circle class="fill" cx="18" cy="18" r="16" pathLength="100" style="stroke-dashoffset: {{@root.project.remainingPct}};"/>
+        </svg>
+        {{/if}}
+        <span class="label">{{label}}</span>
+      </div>
+      {{/each}}
+    </div>
+    <footer class="torso-footer">
+      <span class="status{{#if enabled}} on{{/if}}">
+        <i class="fa-solid fa-circle-nodes"></i>
+        {{#if enabled}}{{localize "WANDERER.App.designated"}}{{else}}{{localize "WANDERER.App.notDesignated"}}{{/if}}
+      </span>
+      <span class="world-day">{{localize "WANDERER.App.worldDay" day=worldDay}}</span>
+    </footer>
+  </section>
+
+  <aside class="side-pane">
+    <section class="card inspect">
+      <h3>{{localize "WANDERER.App.inspect"}}</h3>
+      {{#each slots}}
+      <div class="inspect-card{{#if inspected}} active{{/if}}" data-slot="{{id}}">
+        <header>
+          <span class="slot-name">{{label}}</span>
+          {{#if item}}
+          <span class="badge kind-{{item.kind}}">{{item.kindLabel}}</span>
+          {{#if item.rarityLabel}}<span class="badge rarity-{{item.rarity}}">{{item.rarityLabel}}</span>{{/if}}
+          {{/if}}
+        </header>
+        {{#if item}}
+          <div class="item-head">
+            <img src="{{item.img}}" alt="">
+            <strong>{{item.name}}</strong>
+          </div>
+          {{#if item.effect}}<p class="effect">{{item.effect}}</p>{{/if}}
+          {{#if item.flavor}}<p class="flavor">{{item.flavor}}</p>{{/if}}
+          {{#if item.description}}<div class="description">{{{item.description}}}</div>{{/if}}
+          <div class="actions">
+            <button type="button" data-action="open-item" data-item-id="{{item.id}}"><i class="fas fa-book-open"></i> {{localize "WANDERER.App.open"}}</button>
+            {{#if canEdit}}<button type="button" class="danger" data-action="remove"><i class="fas fa-trash"></i> {{localize "WANDERER.App.remove"}}</button>{{/if}}
+          </div>
+        {{else if isProject}}
+          <div class="item-head">
+            <img src="{{@root.project.img}}" alt="">
+            <strong>{{@root.project.name}}</strong>
+          </div>
+          <p class="hint forge"><i class="fas fa-hammer"></i> {{localize "WANDERER.App.forging"}} · {{localize "WANDERER.App.days" done=@root.project.done total=@root.project.total}}</p>
+        {{else}}
+          {{#if isCore}}
+          <p class="hint">{{localize "WANDERER.App.coreEmpty"}}</p>
+          {{#if @root.isGM}}<p class="hint gm"><i class="fas fa-hand-pointer"></i> {{localize "WANDERER.App.coreDropHint"}}</p>{{/if}}
+          {{else}}
+          <p class="hint">{{localize "WANDERER.App.nodeEmpty"}}</p>
+          {{#if canCraft}}<div class="actions"><button type="button" data-action="craft"><i class="fas fa-hammer"></i> {{localize "WANDERER.App.chooseRune"}}</button></div>{{/if}}
+          {{/if}}
+        {{/if}}
+      </div>
+      {{/each}}
+    </section>
+
+    <section class="card crafting">
+      <h3>{{localize "WANDERER.App.crafting"}}</h3>
+      {{#if project.project}}
+      <div class="project{{#if project.complete}} complete{{/if}}{{#unless project.valid}} invalid{{/unless}}">
+        <div class="item-head">
+          <img src="{{project.img}}" alt="">
+          <div>
+            <strong>{{project.name}}</strong>
+            <div class="sub">{{localize "WANDERER.App.forgingInto" slot=project.slotLabel}}{{#if project.rarityLabel}} · <span class="badge rarity-{{project.rarity}}">{{project.rarityLabel}}</span>{{/if}}</div>
+          </div>
+        </div>
+        <div class="bar"><div class="fill" style="width: {{project.pct}}%;"></div></div>
+        <div class="days">{{localize "WANDERER.App.days" done=project.done total=project.total}} · {{project.pct}}%</div>
+        {{#unless project.valid}}<p class="hint warn"><i class="fas fa-triangle-exclamation"></i> {{localize "WANDERER.App.projectInvalid"}}</p>{{/unless}}
+        {{#if project.complete}}<p class="hint ok"><i class="fas fa-check"></i> {{localize "WANDERER.App.complete"}}</p>{{/if}}
+        {{#if isOwner}}
+        <div class="actions">
+          {{#if project.complete}}
+          <button type="button" class="primary" data-action="install"><i class="fas fa-check"></i> {{localize "WANDERER.App.install"}}</button>
+          {{else}}
+          <button type="button" class="primary" data-action="work"{{#unless project.canWork}} disabled{{/unless}}><i class="fas fa-hammer"></i> {{localize "WANDERER.App.work"}}</button>
+          {{/if}}
+          <button type="button" class="danger" data-action="abandon"><i class="fas fa-ban"></i> {{localize "WANDERER.App.abandon"}}</button>
+        </div>
+        {{#if project.workedToday}}<p class="hint small">{{localize "WANDERER.App.workedToday"}}</p>{{/if}}
+        {{/if}}
+      </div>
+      {{else}}
+      <p class="hint">{{localize "WANDERER.App.noProject"}}</p>
+      {{/if}}
+      {{#if isGM}}
+      <div class="gm-tools">
+        <span class="gm-label">{{localize "WANDERER.App.gmTools"}}</span>
+        <button type="button" data-action="new-day" data-tooltip="{{localize "WANDERER.App.newDayHint"}}"><i class="fas fa-sun"></i> {{localize "WANDERER.App.newDay"}}</button>
+        {{#if project.project}}
+        <button type="button" data-action="add-days"><i class="fas fa-forward"></i> {{localize "WANDERER.App.addDays"}}</button>
+        <button type="button" data-action="finish"><i class="fas fa-flag-checkered"></i> {{localize "WANDERER.App.finish"}}</button>
+        {{/if}}
+        <button type="button" data-action="library"><i class="fas fa-book"></i> {{localize "WANDERER.App.library"}}</button>
+        <button type="button" data-action="layout"><i class="fas fa-crosshairs"></i> {{localize "WANDERER.App.layout"}}</button>
+        <button type="button" data-action="designate">{{#if enabled}}<i class="fas fa-user-slash"></i> {{localize "WANDERER.App.revoke"}}{{else}}<i class="fas fa-user-check"></i> {{localize "WANDERER.App.designate"}}{{/if}}</button>
+      </div>
+      {{/if}}
+    </section>
+
+    <section class="card essences">
+      <h3>{{localize "WANDERER.App.essences"}} <span class="count">{{essences.length}}</span></h3>
+      {{#if essences.length}}
+      <ul class="essence-list">
+        {{#each essences}}
+        <li class="essence-row rarity-{{rarity}}" data-item-id="{{id}}" data-drag data-tooltip="{{localize "WANDERER.App.dragHint"}}">
+          <img src="{{img}}" alt="" draggable="false">
+          <div class="essence-text">
+            <div class="essence-name">{{name}}</div>
+            <div class="sub">{{rarityLabel}} · {{#if days}}{{localize "WANDERER.Picker.essenceDays" days=days}}{{else}}{{localize "WANDERER.Picker.instant"}}{{/if}}</div>
+          </div>
+          {{#if @root.isOwner}}
+          <button type="button" data-action="slot-essence" data-item-id="{{id}}"><i class="fas fa-arrow-right-to-bracket"></i> {{localize "WANDERER.App.slotEssence"}}</button>
+          {{/if}}
+          <button type="button" class="icon-btn" data-action="essence-sheet" data-item-id="{{id}}" data-tooltip="{{localize "WANDERER.App.open"}}"><i class="fas fa-book-open"></i></button>
+        </li>
+        {{/each}}
+      </ul>
+      {{else}}
+      <p class="hint">{{localize "WANDERER.App.noEssences"}}</p>
+      {{/if}}
+      <p class="hint small">{{#if essenceInstant}}{{localize "WANDERER.App.instantEssence"}}{{else}}{{localize "WANDERER.App.timedEssence"}}{{/if}}</p>
+      {{#if isOwner}}
+      <div class="actions">
+        <button type="button" data-action="disenchant"><i class="fas fa-fire"></i> {{localize "WANDERER.App.disenchant"}}</button>
+        <span class="sub">{{localize "WANDERER.App.magicCount" count=magicCount}}</span>
+      </div>
+      {{/if}}
+    </section>
+  </aside>
+</div>

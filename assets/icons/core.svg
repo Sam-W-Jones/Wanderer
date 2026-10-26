@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <radialGradient id="stone" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#55606f"/>
+      <stop offset="70%" stop-color="#2a3340"/>
+      <stop offset="100%" stop-color="#161c26"/>
+    </radialGradient>
+    <radialGradient id="heart" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#bfe4ff" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#2d9bff" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#2d9bff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="47" fill="url(#stone)" stroke="#0e131b" stroke-width="2"/>
+  <g stroke="#2d9bff" stroke-width="1.4" stroke-linecap="round" opacity="0.9" filter="url(#glow)" fill="none">
+    <path d="M50 8 L52 20 L47 30"/>
+    <path d="M8 50 L20 48 L30 53"/>
+    <path d="M92 50 L80 52 L70 47"/>
+    <path d="M50 92 L48 80 L53 70"/>
+    <path d="M18 18 L28 30 L36 34"/>
+    <path d="M82 18 L72 30 L64 34"/>
+    <path d="M18 82 L28 70 L36 66"/>
+    <path d="M82 82 L72 70 L64 66"/>
+  </g>
+  <circle cx="50" cy="50" r="34" fill="url(#heart)"/>
+  <circle cx="50" cy="50" r="30" fill="none" stroke="#9fd4ff" stroke-width="2.6" filter="url(#glow)"/>
+  <path d="M50 22 L66.5 72.5 L23 41 L77 41 L33.5 72.5 Z" fill="none" stroke="#c6e6ff" stroke-width="2.8" stroke-linejoin="round" filter="url(#glow)"/>
+</svg>
