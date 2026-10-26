@@ -66,7 +66,7 @@ export function buildRuneItemData(rune, slot) {
     ...magicalPropertyData()
   };
   if (rune.activation) system.activation = { type: rune.activation, cost: 1, condition: "" };
-  if (rune.uses?.max) system.uses = { value: rune.uses.max, max: String(rune.uses.max), per: rune.uses.per || "lr", recovery: "" };
+  if (rune.uses?.max) system.uses = { value: rune.uses.max, max: String(rune.uses.max), per: rune.uses.per || "lr" };
 
   const effects = (rune.effects ?? []).map(e => ({
     name: e.name ?? rune.name,
