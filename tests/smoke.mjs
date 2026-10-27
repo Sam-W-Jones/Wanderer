@@ -193,7 +193,7 @@ globalThis.Item = class {
 globalThis.Actor = class {
   constructor() {
     this.id = "a1"; this.name = "The Wanderer"; this.type = "character"; this.flags = {};
-    this.system = { abilities: { int: { value: 12 }, wis: { value: 14 } }, attributes: { prof: 3 } };
+    this.system = { abilities: { int: { value: 12 }, wis: { value: 14 }, cha: { value: 8 } }, attributes: { prof: 3 } };
     this.items = new Coll(); this.effects = new Coll();
   }
   get isOwner() { return true; }
@@ -234,9 +234,10 @@ const riderEffects = () => actor.effects.filter(e => e.getFlag("wanderer", "ride
 console.log("\nLibrary");
 const lib = api.runes.library();
 const count = r => lib.filter(x => x.rarity === r).length;
-check(lib.length === 55, `55 runes (${lib.length})`);
-check(count("uncommon") === 20 && count("rare") === 21 && count("veryRare") === 14, `20 / 21 / 14 by rarity (${count("uncommon")}/${count("rare")}/${count("veryRare")})`);
+check(lib.length === 59, `59 runes (${lib.length})`);
+check(count("uncommon") === 21 && count("rare") === 23 && count("veryRare") === 15, `21 / 23 / 15 by rarity (${count("uncommon")}/${count("rare")}/${count("veryRare")})`);
 check(lib.filter(r => r.tags?.includes("utility")).length === 18, `18 utility-tagged runes (${lib.filter(r => r.tags?.includes("utility")).length})`);
+check(lib.filter(r => r.tags?.includes("throw")).length === 8, `8 throw-tagged runes (${lib.filter(r => r.tags?.includes("throw")).length})`);
 check(!lib.some(r => ["return-of-mind", "recall", "deadweight"].includes(r.id)), "Return of Mind, Recall and Deadweight removed");
 check(lib.some(r => r.id === "bedrock") && lib.some(r => r.id === "mortar"), "Bedrock and Mortar added");
 check(!lib.some(r => /teleport(?!ation\b)/i.test(r.effect) && !/except by teleportation/i.test(r.effect)), "no rune denies teleportation");
@@ -246,8 +247,10 @@ check(ids.every(id => /^[A-Za-z0-9]{16}$/.test(id)) && new Set(ids).size === ids
 check(api.items.id("overload") === api.items.id("overload"), "compendium ids deterministic");
 const builtAll = lib.map(r => api.items.build(r));
 check(builtAll.every(d => d._id && d.name && ["feat", "weapon"].includes(d.type) && d.system.description.value.length > 0), "every rune builds into feat or weapon item data");
-check(builtAll.filter(d => d.type === "weapon").length === 2, "Runic Fist and Wrecking Yard build as weapons");
-check(builtAll.filter(d => d.system.activation.type).length === 34, `34 runes are activatable (${builtAll.filter(d => d.system.activation.type).length})`);
+check(builtAll.filter(d => d.type === "weapon").length === 3, "Runic Fist, Wrecking Yard and Hammerstone build as weapons");
+const hammer = builtAll.find(d => d.flags.wanderer.runeId === "hammerstone");
+check(hammer.system.properties.includes("ret") && hammer.system.properties.includes("thr") && hammer.system.save.ability === "str" && hammer.system.range.long === 120, "Hammerstone is a returning thrown weapon with a Strength save");
+check(builtAll.filter(d => d.system.activation.type).length === 36, `36 runes are activatable (${builtAll.filter(d => d.system.activation.type).length})`);
 check(builtAll.filter(d => d.system.uses.max).length === 9, `9 runes have limited uses (${builtAll.filter(d => d.system.uses.max).length})`);
 const masons = builtAll.find(d => d.flags.wanderer.runeId === "masons-hand");
 check(masons.system.uses.max === "@prof" && masons.system.uses.value === null && masons.system.uses.per === "lr", "Mason's Hand uses a @prof formula per long rest");
@@ -292,6 +295,7 @@ await api.crafting.workDays(actor, 1);
 check(!api.crafting.getProject(actor), "project cleared after completion");
 const rune = slotItems().node1;
 check(!!rune && rune.type === "feat" && rune.system.type.value === "supernaturalGift", "rune installed in node1 as a supernatural gift feature");
+check(rune?.img === "modules/wanderer/assets/icons/socket-node1.svg" && rune.flags.wanderer.sourceImg?.endsWith("rune-uncommon.svg"), "carved rune wears the Node I sphere and remembers its own icon");
 check(rune?.flags?.wanderer?.runeId === "titans-grip" && rune.flags.wanderer.kind === "rune", "rune item flagged with slot/kind/runeId");
 check(String(rune?.system?.requirements).includes("Node I"), "requirements names the node");
 check(rune?.effects?.length === 1 && rune.effects[0].changes[0].key === "system.attributes.attunement.max" && rune.effects[0].changes[0].value === "-1", "feature rune spends one attunement slot via effect");
@@ -361,6 +365,7 @@ await api.crafting.beginProject(actor, { slot: "node3", kind: "essence", essence
 await api.riders.request(actor);
 let node3 = slotItems().node3;
 check(node3?.type === "weapon" && node3.flags.wanderer.kind === "essence" && node3.system.attunement === 2 && node3.system.equipped === true, "instant essence slotted as the weapon, attuned and equipped");
+check(node3?.img === "modules/wanderer/assets/icons/socket-node3.svg" && node3.flags.wanderer.sourceImg === "icons/sword.png", "slotted essence wears the Node III sphere and keeps the sword icon");
 check(node3?.system?.attackBonus === "" && node3.system.damage.parts[0][0] === "1d8 + @mod", "node copy has the +2 stripped from attack and damage");
 check(node3?.effects?.length === 1, "original active effects preserved on the node item");
 check(riderEffects().length === 1 && riderEffects()[0].getFlag("wanderer", "bonus") === 2 && riderEffects()[0].changes.some(c => c.key === "system.bonuses.mwak.attack" && c.value === "+2"), "actor carries one weapon rider effect at +2");
@@ -411,7 +416,7 @@ check(!!slotItems().core, "player cannot delete the core item");
 gmUser = true;
 await api.slots.remove(actor, "core");
 const leftover = actor.items.find(i => i.name === "Amulet of Health");
-check(!slotItems().core && leftover && leftover.system.attunement === 1, "GM removal unflags, restores name and un-attunes");
+check(!slotItems().core && leftover && leftover.system.attunement === 1 && leftover.img === "icons/amulet.png" && !leftover.getFlag("wanderer", "sourceImg"), "GM removal unflags, restores name, icon and un-attunes");
 
 /* ---------------- Core options ---------------- */
 console.log("\nCore options");
@@ -420,7 +425,7 @@ check(cores.length === 1 && cores[0].id === "core-of-the-wanderer", "one built-i
 const builtCore = api.items.buildCore(cores[0]);
 check(builtCore.type === "feat" && builtCore.system.type.value === "feat" && builtCore.system.requirements.includes("Kar"), "Core of the Wanderer builds as a feat with its prerequisite");
 check(builtCore.system.uses.max === "1" && builtCore.system.uses.per === "lr" && builtCore.system.activation.type === "minute" && builtCore.system.activation.cost === 10, "Search the Core: 1/long rest over 10 minutes");
-check(builtCore.effects.length === 2 && builtCore.effects.every(e => e.disabled && e.transfer) && builtCore.effects.map(e => e.flags.wanderer.awakened).join() === "int,wis", "two disabled Awakened Core effects (Int, Wis)");
+check(builtCore.effects.length === 3 && builtCore.effects.every(e => e.disabled && e.transfer) && builtCore.effects.map(e => e.flags.wanderer.awakened).join() === "int,wis,cha", "three disabled Awakened Core effects (Int, Wis, Cha)");
 check(/^[A-Za-z0-9]{16}$/.test(builtCore._id) && !ids.includes(builtCore._id), "core compendium id valid and distinct from rune ids");
 const [rage] = await actor.createEmbeddedDocuments("Item", [{ name: "Rage", type: "feat", system: { uses: { value: 3, max: "3", per: "lr" } } }]);
 const seated = await api.cores.seat(actor, "core-of-the-wanderer");
@@ -429,7 +434,8 @@ check(seated.system.consume?.type === "charges" && seated.system.consume.target 
 check(!actor.items.find(i => i.name === "Amulet of Health" && i.getFlag("wanderer", "slot")), "seating replaced the previous core item");
 const chosen = await api.cores.awakened(actor);
 const eff = ab => seated.effects.find(e => e.flags.wanderer.awakened === ab);
-check(chosen === "int" && eff("int").disabled === false && eff("wis").disabled === true, "long-rest choice enables Intelligence and disables Wisdom");
+check(chosen === "int" && eff("int").disabled === false && eff("wis").disabled === true && eff("cha").disabled === true, "long-rest choice enables Intelligence and disables Wisdom and Charisma");
+check(seated.img === "modules/wanderer/assets/icons/socket-core.svg" && seated.flags.wanderer.sourceImg === "modules/wanderer/assets/icons/core.svg", "seated core wears the golden socket sphere and remembers its own icon");
 actor.system.abilities.int.value = 21; // 20 base + the active effect
 const capped = await api.cores.awakened(actor);
 check(capped === null && eff("int").disabled === true && eff("wis").disabled === true, "Awakened Core grants nothing once the score is 20");
@@ -442,6 +448,12 @@ const coreDoc = new Item(api.items.buildCore(cores[0]), null);
 await api.slots.install(actor, "core", coreDoc);
 check(slotItems().core?.name === "Core of the Wanderer" && slotItems().core.system.consume?.target === rage.id, "dropped core item keeps its name and is wired to Rage");
 await api.slots.remove(actor, "core");
+// A GM dropping a rune item straight into a node installs it as a rune (and removal destroys it)
+const runeDoc = new Item(api.items.build(api.runes.get("anvil")), null);
+await api.slots.install(actor, "node3", runeDoc);
+check(slotItems().node3?.flags?.wanderer?.kind === "rune" && slotItems().node3.name.startsWith("WANDERER.ItemName.rune") && api.slots.items(actor).node3.img.endsWith("socket-node3.svg"), "GM direct install of a rune item is treated as a carved rune");
+await api.slots.remove(actor, "node3");
+check(!actor.items.find(i => i.getFlag("wanderer", "runeId") === "anvil"), "removing a directly installed rune destroys it rather than leaving a free feature");
 await api.slots.install(actor, "core", sidebarItem);
 
 /* ---------------- Apps render data ---------------- */
@@ -456,7 +468,7 @@ const pd = await picker.getData();
 check(pd.groups.length === 3 && pd.groups[0].runes.every(r => r.packUuid?.startsWith("Compendium.wanderer.runes.Item.")), "picker rows link to the compendium");
 check(pd.groups[0].runes.find(r => r.id === "titans-grip")?.taken === true, "picker marks carved rune");
 const ld = await new api.apps.RuneLibraryEditor().getData();
-check(ld.groups.flatMap(g => g.runes).length === 55, "library editor lists all runes");
+check(ld.groups.flatMap(g => g.runes).length === 59, "library editor lists all runes");
 
 console.log(`\n${failures ? `${failures} FAILURE(S)` : "ALL CHECKS PASSED"}; warnings seen: ${warnings.length}; chat lines: ${chat.length}`);
 process.exit(failures ? 1 : 0);

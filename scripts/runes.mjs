@@ -157,6 +157,11 @@ export const BUILTIN_RUNES = [
     }
   },
   {
+    id: "follow-through", name: "Follow-Through", rarity: "uncommon", tags: ["throw"],
+    effect: "After he throws a creature or object, he can move up to 10 ft toward where it landed without provoking opportunity attacks.",
+    flavor: "A throw is a sentence. He likes to be there for the full stop."
+  },
+  {
     id: "pumice", name: "Pumice", rarity: "uncommon", tags: ["utility"],
     effect: "Bonus action: he weighs 10 pounds until he ends it as a bonus action. He takes no fall damage, floats, and can be lifted, carried or thrown by anyone who could manage a pack.",
     flavor: "Heavy is a habit. He can put it down.",
@@ -165,7 +170,7 @@ export const BUILTIN_RUNES = [
 
   // ─────────────────────────── Rare ───────────────────────────
   {
-    id: "hurl", name: "Hurl", rarity: "rare",
+    id: "hurl", name: "Hurl", rarity: "rare", tags: ["throw"],
     effect: "Shoving a grappled creature can throw it up to 20 ft: prone, 1d6 per 10 ft, and the same to whatever it lands on.",
     flavor: "There is an argument for picking things up and an argument for putting them down. He has combined them.",
     item: {
@@ -222,7 +227,7 @@ export const BUILTIN_RUNES = [
     flavor: "You may go around. Going around takes a while. That is rather the point."
   },
   {
-    id: "slam", name: "Slam", rarity: "rare",
+    id: "slam", name: "Slam", rarity: "rare", tags: ["throw"],
     effect: "Throwing, shoving or dropping a creature into a wall, floor, object or creature adds 2d6 and can knock it prone.",
     flavor: "Every surface is an anvil if you are holding the hammer by the throat.",
     item: {
@@ -266,7 +271,7 @@ export const BUILTIN_RUNES = [
     flavor: "Whatever was made can be unmade, and the hand that knows how a thing was joined knows where it parts."
   },
   {
-    id: "fastball", name: "Fastball", rarity: "rare",
+    id: "fastball", name: "Fastball", rarity: "rare", tags: ["throw"],
     effect: "In place of one attack of his Attack action: throw a willing Medium-or-smaller ally up to 30 ft; they land on their feet, may use their reaction for one weapon attack, no fall damage.",
     flavor: "Trust is a short flight and a hard landing. Ask the goblin.",
     item: {
@@ -305,7 +310,7 @@ export const BUILTIN_RUNES = [
     }
   },
   {
-    id: "wrecking-yard", name: "Wrecking Yard", rarity: "rare",
+    id: "wrecking-yard", name: "Wrecking Yard", rarity: "rare", tags: ["throw"],
     effect: "Throws objects up to Large as improvised weapons: 20/60 ft, 2d8; a Huge creature hit is pushed 5 ft.",
     flavor: "Carts, statues, the better sort of furniture. The world is full of things that would like to be thrown.",
     item: {
@@ -313,6 +318,22 @@ export const BUILTIN_RUNES = [
       activation: "action", actionType: "rwak", ability: "str",
       damage: [["2d8 + @mod", "bludgeoning"]], range: ft(20, 60), target: one,
       chatFlavor: "Throws an object up to Large. A Huge creature hit is pushed 5 ft."
+    }
+  },
+  {
+    id: "trebuchet", name: "Trebuchet", rarity: "rare", tags: ["throw"],
+    effect: "Creatures and objects he throws fly twice as far (Hurl 40 ft, Wrecking Yard 40/120 ft, Fastball 60 ft), and a thrown creature that lands on another creature knocks that creature prone as well.",
+    flavor: "Distance is a matter of commitment."
+  },
+  {
+    id: "hammerstone", name: "Hammerstone", rarity: "rare", tags: ["throw"],
+    effect: "A fist-sized stone carved with his mark. He throws it as a weapon attack (30/120 ft, 2d6 + Str bludgeoning, magical); a creature hit must succeed on a Strength save or be knocked prone. The stone flies back to his hand at the end of his turn.",
+    flavor: "It always comes back. That is the whole of the arrangement.",
+    item: {
+      type: "weapon", weapon: { type: "improv", properties: ["mgc", "thr", "ret"] },
+      activation: "action", actionType: "rwak", ability: "str",
+      damage: [["2d6 + @mod", "bludgeoning"]], range: ft(30, 120), target: one, save: strSave,
+      chatFlavor: "On a hit the creature must succeed on a Strength save or be knocked prone. The stone returns to his hand at the end of his turn."
     }
   },
   {
@@ -450,6 +471,16 @@ export const BUILTIN_RUNES = [
       activation: "special", condition: "Start of each of his turns while raging", range: selfRange, target: self,
       actionType: "heal", damage: [["@prof + @abilities.con.mod", "temphp"]],
       chatFlavor: "Temporary hit points; they don't stack with any he already has."
+    }
+  },
+  {
+    id: "thoroughfare", name: "Thoroughfare", rarity: "veryRare", tags: ["throw"],
+    effect: "When he throws a creature, he can throw it down a 30 ft line instead: each creature in the line makes a Dexterity save (DC 8 + PB + Str) or takes 4d6 bludgeoning and is knocked prone. The thrown creature takes 1d6 for each creature it hit and lands prone at the end of the line.",
+    flavor: "Everyone standing in the road was warned by the road.",
+    item: {
+      activation: "special", condition: "When he throws a creature",
+      target: { value: 30, width: 5, units: "ft", type: "line" }, actionType: "save", save: { ability: "dex", scaling: "str" }, damage: [["4d6", "bludgeoning"]],
+      chatFlavor: "Each creature in the line: Dexterity save or take the damage and fall prone. The thrown creature takes 1d6 per creature it hit and lands prone at the end."
     }
   },
   {

@@ -39,7 +39,10 @@ The window has the torso on the left and three panels on the right.
 - **Hover** a slot to inspect it. **Click** to pin it. The panel shows the rune's effect and flavour, or the
   item's description, with **Open** (item sheet) and **Remove** buttons.
 - **Double-click** a filled slot to open its item sheet; double-click an empty node to choose a rune.
-- **Filled** slots glow blue and are linked to the core; a slot being worked on glows amber with a progress ring.
+- **Filled** slots show a sphere: a golden arcane sphere for the core and a runed blue sphere for each node,
+  linked to the core by lit lines. A slot being worked on glows amber with a progress ring. Whatever is slotted
+  takes its slot's sphere as its item icon on the sheet (`assets/icons/socket-*.svg`); the original icon is kept
+  in `flags.wanderer.sourceImg`, shown small on the inspect panel, and restored when the item leaves the slot.
 
 ### Carving a rune
 
@@ -85,6 +88,11 @@ holding), Lantern Heart (lantern of revealing, with a token light for Active Tok
 Tell, Deep Ear, Masonwork, Open Seam (passwall), Mason's Hand (stone shape), Hearth and Chips of the Core (sending
 stones), alongside Ley-Sight, Elven Protocol and Builder's Eye.
 
+Runes tagged **throw** build on the table's house rule that he can throw creatures he is grappling: Hurl, Slam,
+Fastball and Wrecking Yard from the original tables, plus Follow-Through (a free 10 ft step after a throw),
+Trebuchet (double throw distances), Hammerstone (a returning thrown stone weapon with a Strength save to knock
+prone) and Thoroughfare (very rare: a thrown creature becomes a 30 ft line attack).
+
 The picker and the bench carry a player-facing note that master rune-crafters may be able to aid the work,
 particularly with very rare runes. Mechanically the GM represents such help with **Add days** on the bench.
 
@@ -129,9 +137,9 @@ click; the same item sits in the compendium and can be dragged onto the core ins
 current core item. **Core of the Wanderer** (`scripts/cores.mjs`) is a granted feat with the three features from
 the text:
 
-- **Awakened Core**: after each long rest the owner is asked to choose Intelligence or Wisdom. The chosen score
-  gets +1 through one of two Active Effects on the feat (the other is disabled) until the next long rest, and
-  nothing is granted once the score would pass 20.
+- **Awakened Core**: after each long rest the owner is asked to choose Intelligence, Wisdom or Charisma. The
+  chosen score gets +1 through one of three Active Effects on the feat (the others are disabled) until the next
+  long rest, and nothing is granted once the score would pass 20.
 - **The Old Machinery**: description only, at the DM's discretion.
 - **Search the Core**: a usable feature, 1 per long rest, 10 minutes, that spends one use of **Rage**. The link
   is made when the core is seated by finding a feature named Rage on the sheet; if there is none yet, a warning

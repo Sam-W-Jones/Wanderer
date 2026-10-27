@@ -14,6 +14,10 @@
   Quiet Earth, Stone Tell, Deep Ear, Masonwork (rare); Open Seam, Mason's Hand, Hearth, Chips of the Core (very
   rare). Runes carry tags shown in the picker.
 - Player-facing note on the picker and bench: master rune-crafters may aid the work, especially on very rares.
+- Throw runes for the grapple-throw house rule: Follow-Through (uncommon), Trebuchet and Hammerstone (rare),
+  Thoroughfare (very rare). Hurl, Slam, Fastball and Wrecking Yard carry the throw tag.
+- Socket graphics: a golden arcane sphere for the core and runed blue spheres for the nodes; slotted items take
+  their slot's sphere as icon and get their own back when removed. Awakened Core offers Charisma as well.
 - **Wanderer Runes compendium**: every rune as a ready-to-use dnd5e item (Supernatural Gift feature or weapon)
   with activation, limited uses, saves, damage, temporary hit points and passive Active Effects; carving copies
   the compendium item onto the sheet. Unstable Core II spends Overload's use. Carved runes lower the attunement

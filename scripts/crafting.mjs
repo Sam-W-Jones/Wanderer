@@ -1,4 +1,4 @@
-import { MODULE_ID, SECONDS_PER_DAY, NODE_IDS } from "./constants.mjs";
+import { MODULE_ID, SECONDS_PER_DAY, NODE_IDS, SLOT_ICONS } from "./constants.mjs";
 import { getDaysFor, essencesInstant, slotLabel, runesConsumeAttunement } from "./settings.mjs";
 import { getRune, runeIcon } from "./library.mjs";
 import { attunedData, itemRarity } from "./dnd5e.mjs";
@@ -219,7 +219,9 @@ export async function runeInstallData(actor, project, rune, slot) {
   delete data._id;
   const f = data.flags?.[MODULE_ID] ?? {};
   const sourceName = f.sourceName || rune?.name || data.name;
+  const sourceImg = f.sourceImg || data.img;
   data.name = prefixedName("rune", sourceName);
+  data.img = SLOT_ICONS[slot] ?? data.img;
   data.flags = data.flags ?? {};
   data.flags[MODULE_ID] = {
     ...f,
@@ -229,7 +231,8 @@ export async function runeInstallData(actor, project, rune, slot) {
     effect: f.effect ?? rune?.effect ?? "",
     flavor: f.flavor ?? rune?.flavor ?? "",
     requires: f.requires ?? rune?.requires ?? null,
-    sourceName
+    sourceName,
+    sourceImg
   };
   data.system = data.system ?? {};
   if (data.type === "feat") data.system.requirements = L("WANDERER.Item.requirementsSlot", { slot: slotLabel(slot) });
@@ -264,8 +267,17 @@ export async function installProject(actor) {
   const [created] = await actor.createEmbeddedDocuments("Item", [data]);
   if (project.kind === "essence") await actor.items.get(project.essenceId)?.delete();
 
-  // A rune that spends another rune's uses (Unstable Core II → Overload) is pointed at it.
-  if (created) await wireConsumption(actor, created);
+  // A rune that spends another rune's uses (Unstable Core II → Overload) is pointed at it, and runes
+  // already carved that spend this one's uses are pointed back.
+  if (created) {
+    await wireConsumption(actor, created);
+    const runeId = created.getFlag(MODULE_ID, "runeId");
+    for (const other of actor.items) {
+      if (other.id !== created.id && other.getFlag(MODULE_ID, "slot") && other.getFlag(MODULE_ID, "consumeOf") === runeId) {
+        await wireConsumption(actor, other);
+      }
+    }
+  }
 
   await actor.unsetFlag(MODULE_ID, "project");
   requestRiderSync(actor);

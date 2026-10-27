@@ -17,7 +17,19 @@ export const ICONS = {
   rare: `modules/${MODULE_ID}/assets/icons/rune-rare.svg`,
   veryRare: `modules/${MODULE_ID}/assets/icons/rune-very-rare.svg`,
   essence: `modules/${MODULE_ID}/assets/icons/essence.svg`,
-  core: `modules/${MODULE_ID}/assets/icons/core.svg`
+  core: `modules/${MODULE_ID}/assets/icons/core.svg`,
+  socketCore: `modules/${MODULE_ID}/assets/icons/socket-core.svg`,
+  socketNode1: `modules/${MODULE_ID}/assets/icons/socket-node1.svg`,
+  socketNode2: `modules/${MODULE_ID}/assets/icons/socket-node2.svg`,
+  socketNode3: `modules/${MODULE_ID}/assets/icons/socket-node3.svg`
+};
+
+/** The sphere each slot shows when filled; slotted items take it as their icon. */
+export const SLOT_ICONS = {
+  core: ICONS.socketCore,
+  node1: ICONS.socketNode1,
+  node2: ICONS.socketNode2,
+  node3: ICONS.socketNode3
 };
 
 export const DEFAULT_IMAGE = `modules/${MODULE_ID}/assets/wanderer-sheet.webp`;

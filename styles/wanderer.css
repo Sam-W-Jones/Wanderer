@@ -427,13 +427,39 @@
 }
 
 .wanderer-core .slot .icon {
-  width: 74%;
-  height: 74%;
+  width: 88%;
+  height: 88%;
   border-radius: 50%;
   border: none;
   object-fit: cover;
-  background: #0a0e16;
+  background: transparent;
   filter: drop-shadow(0 0 6px var(--wd-blue));
+}
+
+.wanderer-core .slot.core-slot .icon {
+  width: 92%;
+  height: 92%;
+  filter: drop-shadow(0 0 8px rgba(243, 207, 106, 0.8));
+}
+
+.wanderer-core .slot.filled.core-slot .ring {
+  border-color: #ffe9a6;
+  animation: wd-pulse-gold 3.2s ease-in-out infinite;
+}
+
+@keyframes wd-pulse-gold {
+  0%, 100% { box-shadow: 0 0 22px 6px rgba(243, 207, 106, 0.4), inset 0 0 16px rgba(255, 233, 166, 0.45); }
+  50% { box-shadow: 0 0 36px 12px rgba(243, 207, 106, 0.6), inset 0 0 24px rgba(255, 233, 166, 0.7); }
+}
+
+.wanderer-core .inspect-card .source-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid var(--wd-border);
+  object-fit: cover;
+  margin-left: auto;
+  opacity: 0.85;
 }
 
 .wanderer-core .slot.forging .ring {

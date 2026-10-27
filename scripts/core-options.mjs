@@ -2,7 +2,7 @@
  * Seatable core options (scripts/cores.mjs): the GM's picker, seating, and the Awakened Core
  * choice after a long rest.
  */
-import { MODULE_ID, TEMPLATES, ICONS } from "./constants.mjs";
+import { MODULE_ID, TEMPLATES, ICONS, SLOT_ICONS } from "./constants.mjs";
 import { BUILTIN_CORES } from "./cores.mjs";
 import { buildCoreItemData, coreItemId, PACK_ID } from "./items.mjs";
 import { getSlotItems, removeFromSlot, wireConsumption } from "./model.mjs";
@@ -27,8 +27,9 @@ export async function coreInstallData(core) {
   data.flags = data.flags ?? {};
   data.flags[MODULE_ID] = {
     ...(data.flags[MODULE_ID] ?? {}),
-    slot: "core", kind: "core", coreId: core.id, sourceName: core.name, rarity: ""
+    slot: "core", kind: "core", coreId: core.id, sourceName: core.name, sourceImg: data.img, rarity: ""
   };
+  data.img = SLOT_ICONS.core;
   return data;
 }
 

@@ -1,4 +1,4 @@
-import { MODULE_ID, SLOT_IDS, ICONS } from "./constants.mjs";
+import { MODULE_ID, SLOT_IDS, ICONS, SLOT_ICONS } from "./constants.mjs";
 import { attunedData, unattunedData, requiresAttunement, itemRarity, isMagicItem, isPhysical } from "./dnd5e.mjs";
 import { slotLabel } from "./settings.mjs";
 import { getRune } from "./library.mjs";
@@ -91,7 +91,8 @@ export function buildSlottedEssenceData(essenceItem, slot) {
   const data = foundry.utils.deepClone(original);
   delete data._id;
   data.name = prefixedName("essence", ess.sourceName || essenceItem.name);
-  data.img = data.img || ess.sourceImg || essenceItem.img;
+  const sourceImg = data.img || ess.sourceImg || essenceItem.img;
+  data.img = SLOT_ICONS[slot] ?? sourceImg;
   data.system = data.system ?? {};
 
   const rider = ess.rider ?? riderOf(original);
@@ -106,6 +107,7 @@ export function buildSlottedEssenceData(essenceItem, slot) {
     slot, kind: "essence",
     rarity: ess.rarity || itemRarity(essenceItem),
     sourceName: ess.sourceName || essenceItem.name,
+    sourceImg,
     rider: rider ?? null,
     sourceData: original
   };
@@ -168,8 +170,10 @@ export async function installItemDocument(actor, slot, item, { announce = true }
   const kind = slot === "core" ? "core" : "item";
   const attune = slot !== "core" || requiresAttunement(item);
   const own = slotFlags(item);
-  const flags = { ...own, slot, kind, rarity: itemRarity(item), sourceName: own.sourceName || item.name };
-  const name = own.coreId ? item.name : prefixedName(kind, item.name);
+  const runeKind = own.runeId ? "rune" : kind;
+  const flags = { ...own, slot, kind: runeKind, rarity: itemRarity(item), sourceName: own.sourceName || item.name, sourceImg: own.sourceImg || item.img };
+  const name = own.coreId ? item.name : prefixedName(runeKind, own.sourceName || item.name);
+  const img = SLOT_ICONS[slot] ?? item.img;
   const sys = {};
   if (attune) Object.assign(sys, attunedData(true));
   if (["weapon", "equipment"].includes(item.type)) sys.equipped = true;
@@ -177,7 +181,7 @@ export async function installItemDocument(actor, slot, item, { announce = true }
   let result;
   if (item.parent === actor) {
     if (existing && existing.id !== item.id) await removeFromSlot(actor, slot, { announce: false });
-    const update = { name, [`flags.${MODULE_ID}`]: flags };
+    const update = { name, img, [`flags.${MODULE_ID}`]: flags };
     for (const [k, v] of Object.entries(sys)) update[`system.${k}`] = v;
     await item.update(update);
     result = item;
@@ -186,6 +190,7 @@ export async function installItemDocument(actor, slot, item, { announce = true }
     const data = item.toObject();
     delete data._id;
     data.name = name;
+    data.img = img;
     data.system = foundry.utils.mergeObject(data.system ?? {}, sys);
     data.flags = data.flags ?? {};
     data.flags[MODULE_ID] = flags;
@@ -208,7 +213,7 @@ export async function removeFromSlot(actor, slot, { announce = true } = {}) {
   const f = slotFlags(item);
   const name = f.sourceName || item.name;
 
-  if (f.kind === "rune") {
+  if (f.kind === "rune" || f.runeId) {
     await unwireConsumption(actor, item);
     await item.delete();
   } else if (f.kind === "essence") {
@@ -217,10 +222,12 @@ export async function removeFromSlot(actor, slot, { announce = true } = {}) {
   } else {
     const update = {
       name,
+      img: f.sourceImg || item.img,
       [`flags.${MODULE_ID}.-=slot`]: null,
       [`flags.${MODULE_ID}.-=kind`]: null,
       [`flags.${MODULE_ID}.-=rarity`]: null,
-      [`flags.${MODULE_ID}.-=sourceName`]: null
+      [`flags.${MODULE_ID}.-=sourceName`]: null,
+      [`flags.${MODULE_ID}.-=sourceImg`]: null
     };
     for (const [k, v] of Object.entries(unattunedData(item))) update[`system.${k}`] = v;
     await item.update(update);

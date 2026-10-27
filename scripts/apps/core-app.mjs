@@ -97,6 +97,7 @@ export class WandererCoreApp extends Application {
           rarity, rarityLabel: rarityLabel(rarity),
           effect: f.effect ?? "", flavor: f.flavor ?? "",
           rider: f.rider ?? null, riderLabel: riderLabel(f.rider),
+          sourceImg: f.sourceImg && f.sourceImg !== item.img ? f.sourceImg : null,
           description
         };
         view.tooltip = rarity ? `${item.name} (${rarityLabel(rarity)})` : item.name;
