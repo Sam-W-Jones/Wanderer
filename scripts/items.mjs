@@ -78,7 +78,13 @@ function actionSystem(m) {
     duration: { value: m.duration?.value ?? null, units: m.duration?.units ?? "" },
     target: { value: m.target?.value ?? null, width: m.target?.width ?? null, units: m.target?.units ?? "", type: m.target?.type ?? "" },
     range: { value: m.range?.value ?? null, long: m.range?.long ?? null, units: m.range?.units ?? "" },
-    uses: { value: m.uses?.max ? Number(m.uses.max) : null, max: m.uses?.max ? String(m.uses.max) : "", per: m.uses?.per ?? "", recovery: "" },
+    // uses.max may be a formula ("@prof"); a numeric max fills the current value, a formula is resolved on carving.
+    uses: {
+      value: m.uses?.max && Number.isFinite(Number(m.uses.max)) ? Number(m.uses.max) : null,
+      max: m.uses?.max ? String(m.uses.max) : "",
+      per: m.uses?.per ?? "",
+      recovery: ""
+    },
     consume: { type: "", target: null, amount: null, scale: false },
     ability: m.ability ?? "",
     actionType: m.actionType ?? "",

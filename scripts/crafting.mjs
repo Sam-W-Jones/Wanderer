@@ -178,11 +178,29 @@ export async function workDays(actor, days = 1, { ignoreDaily = false } = {}) {
   if (update.complete) await installProject(actor);
 }
 
+/** Evaluate a uses formula such as "@prof" against the actor. Null if it cannot be resolved. */
+function resolveUses(formula, actor) {
+  const text = String(formula ?? "").trim();
+  if (!text) return null;
+  if (Number.isFinite(Number(text))) return Number(text);
+  try {
+    const rollData = actor.getRollData?.() ?? {};
+    const n = Roll.safeEval(Roll.replaceFormulaData(text, rollData));
+    return Number.isFinite(n) ? Math.floor(n) : null;
+  } catch (err) {
+    if (text === "@prof") {
+      const prof = Number(actor.system?.attributes?.prof);
+      return Number.isFinite(prof) ? prof : null;
+    }
+    return null;
+  }
+}
+
 /**
  * Item data for carving a rune: a copy of the compendium item when the rune is built in (so GM
  * edits to the pack carry through), the referenced item for `sourceUuid`, else built from the definition.
  */
-export async function runeInstallData(project, rune, slot) {
+export async function runeInstallData(actor, project, rune, slot) {
   let data = null;
   if (project.sourceUuid) {
     const doc = await fromUuid(project.sourceUuid).catch(() => null);
@@ -215,6 +233,10 @@ export async function runeInstallData(project, rune, slot) {
   };
   data.system = data.system ?? {};
   if (data.type === "feat") data.system.requirements = L("WANDERER.Item.requirementsSlot", { slot: slotLabel(slot) });
+  if (data.system.uses?.max && data.system.uses.value == null) {
+    const n = resolveUses(data.system.uses.max, actor);
+    if (n != null) data.system.uses.value = n;
+  }
   if (["weapon", "equipment"].includes(data.type)) Object.assign(data.system, attunedData(true), { equipped: true });
   if (!runesConsumeAttunement()) data.effects = (data.effects ?? []).filter(e => !e.flags?.[MODULE_ID]?.attunement);
   return data;
@@ -230,7 +252,7 @@ export async function installProject(actor) {
   let data;
   if (project.kind === "rune") {
     const rune = getRune(project.runeId);
-    data = await runeInstallData(project, rune, project.slot);
+    data = await runeInstallData(actor, project, rune, project.slot);
     if (!data) return void ui.notifications.warn(L("WANDERER.Craft.sourceMissing", { name: project.name }));
   } else {
     const ess = actor.items.get(project.essenceId);

@@ -464,10 +464,11 @@ export const BUILTIN_RUNES = [
   },
   {
     id: "masons-hand", name: "Mason's Hand", rarity: "veryRare", tags: ["utility"],
-    effect: "Over 1 minute he reshapes up to a 5 ft cube of stone with his hands: a door, a bridge span, a cell, a likeness. Worked or natural stone, never a creature. No limit but time.",
+    effect: "Over 1 minute he reshapes up to a 5 ft cube of stone with his hands: a door, a bridge span, a cell, a likeness. Worked or natural stone, never a creature. A number of times equal to his proficiency bonus per long rest.",
     flavor: "Everything he touches remembers being soft.",
     item: {
-      activation: "minute", cost: 1, range: { value: null, long: null, units: "touch" }, target: { value: 5, units: "ft", type: "cube" }, actionType: "util",
+      activation: "minute", cost: 1, uses: { max: "@prof", per: "lr" },
+      range: { value: null, long: null, units: "touch" }, target: { value: 5, units: "ft", type: "cube" }, actionType: "util",
       chatFlavor: "Up to a 5 ft cube of worked or natural stone, reshaped by hand over a minute. Never a creature."
     }
   },

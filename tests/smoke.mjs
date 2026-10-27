@@ -193,7 +193,7 @@ globalThis.Item = class {
 globalThis.Actor = class {
   constructor() {
     this.id = "a1"; this.name = "The Wanderer"; this.type = "character"; this.flags = {};
-    this.system = { abilities: { int: { value: 12 }, wis: { value: 14 } } };
+    this.system = { abilities: { int: { value: 12 }, wis: { value: 14 } }, attributes: { prof: 3 } };
     this.items = new Coll(); this.effects = new Coll();
   }
   get isOwner() { return true; }
@@ -248,7 +248,9 @@ const builtAll = lib.map(r => api.items.build(r));
 check(builtAll.every(d => d._id && d.name && ["feat", "weapon"].includes(d.type) && d.system.description.value.length > 0), "every rune builds into feat or weapon item data");
 check(builtAll.filter(d => d.type === "weapon").length === 2, "Runic Fist and Wrecking Yard build as weapons");
 check(builtAll.filter(d => d.system.activation.type).length === 34, `34 runes are activatable (${builtAll.filter(d => d.system.activation.type).length})`);
-check(builtAll.filter(d => d.system.uses.max).length === 8, `8 runes have limited uses (${builtAll.filter(d => d.system.uses.max).length})`);
+check(builtAll.filter(d => d.system.uses.max).length === 9, `9 runes have limited uses (${builtAll.filter(d => d.system.uses.max).length})`);
+const masons = builtAll.find(d => d.flags.wanderer.runeId === "masons-hand");
+check(masons.system.uses.max === "@prof" && masons.system.uses.value === null && masons.system.uses.per === "lr", "Mason's Hand uses a @prof formula per long rest");
 const burrow = builtAll.find(d => d.flags.wanderer.runeId === "moles-road");
 check(burrow.effects[0].changes[0].key === "system.attributes.movement.burrow" && burrow.effects[0].changes[0].value === "20", "Mole's Road grants a burrow speed by effect");
 const bedrock = builtAll.find(d => d.flags.wanderer.runeId === "bedrock");
@@ -328,6 +330,11 @@ await api.crafting.finishNow(actor);
 const tremor = slotItems().node2;
 check(tremor?.effects?.length === 2 && tremor.effects[0].changes[0].value === "30" && tremor.effects.every(e => e.transfer === true), "Tremor Step carries its 30 ft sense effect and the attunement effect");
 check(overload.system.uses.per === "lr", "prying out Unstable Core II restores Overload to long-rest recovery");
+
+// A formula uses maximum is resolved against the actor when carved
+await api.crafting.beginProject(actor, { slot: "node2", kind: "rune", runeId: "masons-hand" });
+await api.crafting.finishNow(actor);
+check(slotItems().node2?.system?.uses?.value === 3 && slotItems().node2.system.uses.max === "@prof", "Mason's Hand carved with current uses equal to the proficiency bonus");
 
 // Attunement setting off → no attunement effect
 await game.settings.set("wanderer", "runesConsumeAttunement", false);

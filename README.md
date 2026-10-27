@@ -60,9 +60,11 @@ A carved rune is copied from the compendium onto the actor as a **Supernatural G
 Wrecking Yard are weapons), named `Rune: …`, with:
 
 - an **activation** (action, bonus, reaction or special) and the triggering condition in its activation text;
-- **limited uses** where the rune says so (Overload 1 and Colossus 2 per long rest; Shockwave 1, Pile Driver 2
-  and Kinetic Lock 2 per short rest). Unstable Core II spends Overload's use and, while carved, makes Overload
-  recharge on a short rest;
+- **limited uses** where the rune says so (Overload 1, Colossus 2, Stone Tell 1 and Mason's Hand a proficiency
+  bonus of uses per long rest; Shockwave 1, Pile Driver 2, Kinetic Lock 2, Deep Ear 1 and Open Seam 1 per short
+  rest). A formula maximum such as `@prof` is kept on the item and its current uses are filled in from the
+  actor when carved. Unstable Core II spends Overload's use and, while carved, makes Overload recharge on a
+  short rest;
 - **saving throws** with the DC computed from the Wanderer (Overload: Dex save, DC 8 + PB + Con; pushes, pulls,
   trips and Shockwave: Strength save, DC 8 + PB + Str; Pile Driver: Con save, DC from Str), **damage** rolls
   (Overload 5d8 force, Slam 2d6, Hurl 1d6 per 10 ft, Vise = Str modifier, Rune-Burn 2d8 force, Pile Driver fall
