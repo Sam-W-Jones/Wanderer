@@ -60,6 +60,7 @@ export function buildEssenceItemData(source) {
   const data = source instanceof Item ? source.toObject() : foundry.utils.deepClone(source);
   delete data._id;
   if (data.flags) delete data.flags[MODULE_ID];
+  if (data.system && "quantity" in data.system) data.system.quantity = 1;
   const rarity = data.system?.rarity || "uncommon";
   const desc = data.system?.description?.value ?? "";
   const rider = riderOf(data);
@@ -166,12 +167,23 @@ export async function unwireConsumption(actor, item) {
  * Items already owned by the actor are flagged in place; anything else is copied onto the actor.
  */
 export async function installItemDocument(actor, slot, item, { announce = true } = {}) {
+  if (slot === "core" && !game.user.isGM) return void ui.notifications.warn(L("WANDERER.Drop.coreGmOnly"));
   const existing = getSlotItems(actor)[slot];
   const kind = slot === "core" ? "core" : "item";
   const attune = slot !== "core" || requiresAttunement(item);
   const own = slotFlags(item);
   const runeKind = own.runeId ? "rune" : kind;
-  const flags = { ...own, slot, kind: runeKind, rarity: itemRarity(item), sourceName: own.sourceName || item.name, sourceImg: own.sourceImg || item.img };
+  // Remember what the item looked like so removal can put it back exactly.
+  const sourceSystem = {
+    attunement: item.system?.attunement ?? null,
+    attuned: typeof item.system?.attuned === "boolean" ? item.system.attuned : null,
+    equipped: typeof item.system?.equipped === "boolean" ? item.system.equipped : null
+  };
+  const flags = {
+    ...own, slot, kind: runeKind, rarity: itemRarity(item),
+    sourceName: own.sourceName || item.name, sourceImg: own.sourceImg || item.img,
+    sourceSystem: own.sourceSystem ?? sourceSystem
+  };
   const name = own.coreId ? item.name : prefixedName(runeKind, own.sourceName || item.name);
   const img = SLOT_ICONS[slot] ?? item.img;
   const sys = {};
@@ -206,18 +218,22 @@ export async function installItemDocument(actor, slot, item, { announce = true }
   return result;
 }
 
-/** Empty a slot. Runes are destroyed, essences go back to the inventory, other items are unflagged. */
+/**
+ * Empty a slot. Runes and built-in cores are destroyed (they are the module's own items), essences go
+ * back to the inventory, and anything else is unflagged and restored to how it was before being slotted.
+ */
 export async function removeFromSlot(actor, slot, { announce = true } = {}) {
+  if (slot === "core" && !game.user.isGM) return void ui.notifications.warn(L("WANDERER.Remove.coreGmOnly"));
   const item = getSlotItems(actor)[slot];
   if (!item) return;
   const f = slotFlags(item);
   const name = f.sourceName || item.name;
 
-  if (f.kind === "rune" || f.runeId) {
+  if (f.kind === "rune" || f.runeId || f.coreId) {
     await unwireConsumption(actor, item);
     await item.delete();
   } else if (f.kind === "essence") {
-    await actor.createEmbeddedDocuments("Item", [essenceFromSlotted(item)]);
+    await actor.createEmbeddedDocuments("Item", [essenceFromSlotted(item)], { wandererEssence: true });
     await item.delete();
   } else {
     const update = {
@@ -227,9 +243,17 @@ export async function removeFromSlot(actor, slot, { announce = true } = {}) {
       [`flags.${MODULE_ID}.-=kind`]: null,
       [`flags.${MODULE_ID}.-=rarity`]: null,
       [`flags.${MODULE_ID}.-=sourceName`]: null,
-      [`flags.${MODULE_ID}.-=sourceImg`]: null
+      [`flags.${MODULE_ID}.-=sourceImg`]: null,
+      [`flags.${MODULE_ID}.-=sourceSystem`]: null
     };
-    for (const [k, v] of Object.entries(unattunedData(item))) update[`system.${k}`] = v;
+    const ss = f.sourceSystem;
+    if (ss) {
+      if (ss.attunement !== null && ss.attunement !== undefined) update["system.attunement"] = ss.attunement;
+      if (ss.attuned !== null && ss.attuned !== undefined) update["system.attuned"] = ss.attuned;
+      if (ss.equipped !== null && ss.equipped !== undefined) update["system.equipped"] = ss.equipped;
+    } else {
+      for (const [k, v] of Object.entries(unattunedData(item))) update[`system.${k}`] = v;
+    }
     await item.update(update);
   }
   requestRiderSync(actor);
@@ -244,8 +268,12 @@ export async function removeFromSlot(actor, slot, { announce = true } = {}) {
 export async function disenchantItem(actor, item, { announce = true, destroy = true } = {}) {
   const data = buildEssenceItemData(item);
   const name = item.name;
-  const [essence] = await actor.createEmbeddedDocuments("Item", [data]);
-  if (destroy && item.parent === actor) await item.delete();
+  const [essence] = await actor.createEmbeddedDocuments("Item", [data], { wandererEssence: true });
+  if (destroy && item.parent === actor) {
+    const quantity = Number(item.system?.quantity ?? 1);
+    if (quantity > 1) await item.update({ "system.quantity": quantity - 1 });
+    else await item.delete();
+  }
   if (announce) await postChat(actor, escapeHTML(L("WANDERER.Chat.disenchanted", { actor: actor.name, item: name })));
   return essence;
 }

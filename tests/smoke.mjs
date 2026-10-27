@@ -94,14 +94,18 @@ globalThis.game = {
     async set(m, k, v) { settingsStore.set(`${m}.${k}`, deepClone(v)); settingsCfg.get(`${m}.${k}`).onChange?.(v); }
   },
   user: { id: "u1", get isGM() { return gmUser; }, character: null },
-  users: { get: () => ({ get isGM() { return gmUser; } }) },
+  users: {
+    get: id => (id === "u1" ? { id, name: "Sam", get isGM() { return gmUser; } } : { id, name: "Player", isGM: false }),
+    get activeGM() { return gmUser ? { id: "u1" } : null; }
+  },
   system: { id: "dnd5e", version: "3.0.4" },
   time: { worldTime: 0 },
   actors: { get: () => null, getName: () => null, filter: () => [] },
   modules: { get: () => moduleRecord },
   packs: { get: () => null }
 };
-globalThis.fromUuid = async () => null;
+const uuidDocs = new Map();
+globalThis.fromUuid = async uuid => uuidDocs.get(uuid) ?? null;
 const warnings = [];
 globalThis.ui = {
   notifications: { warn: m => warnings.push(m), info: () => {}, error: m => warnings.push(m) },
@@ -164,6 +168,7 @@ globalThis.Item = class {
     this.system = deepClone(data.system ?? {}); this.flags = deepClone(data.flags ?? {});
     this.effects = deepClone(data.effects ?? []).map(e => ({ _id: e._id ?? newId(), ...e }));
     this.parent = parent;
+    this.pack = data.pack ?? null;
   }
   async updateEmbeddedDocuments(type, arr) {
     if (type !== "ActiveEffect") throw new Error("unsupported");
@@ -172,7 +177,7 @@ globalThis.Item = class {
   }
   static get implementation() { return Item; }
   get id() { return this._id; }
-  get uuid() { return `Actor.${this.parent?.id}.Item.${this.id}`; }
+  get uuid() { return this.pack ? `Compendium.${this.pack}.Item.${this.id}` : `Actor.${this.parent?.id}.Item.${this.id}`; }
   get sheet() { return { render() {} }; }
   getFlag(s, k) { return getProp(this.flags, `${s}.${k}`); }
   toObject() { return deepClone({ _id: this._id, name: this.name, type: this.type, img: this.img, system: this.system, flags: this.flags, effects: this.effects }); }
@@ -201,14 +206,14 @@ globalThis.Actor = class {
   getFlag(s, k) { return getProp(this.flags, `${s}.${k}`); }
   async setFlag(s, k, v) { setProp(this.flags, `${s}.${k}`, deepClone(v)); Hooks.callAll("updateActor", this, { flags: { [s]: { [k]: v } } }); }
   async unsetFlag(s, k) { setProp(this.flags, `${s}.-=${k}`, null); Hooks.callAll("updateActor", this, { flags: { [s]: { [`-=${k}`]: null } } }); }
-  async createEmbeddedDocuments(type, arr) {
+  async createEmbeddedDocuments(type, arr, options = {}) {
     if (type === "ActiveEffect") return arr.map(d => { const e = new FakeEffect(d, this); this.effects.set(e.id, e); return e; });
     const out = [];
     for (const d of arr) {
       const it = new Item(d, this);
-      if (Hooks.call("preCreateItem", it, d, {}, game.user.id) === false) continue;
+      if (Hooks.call("preCreateItem", it, d, options, game.user.id) === false) continue;
       this.items.set(it.id, it);
-      Hooks.callAll("createItem", it, {}, game.user.id);
+      Hooks.callAll("createItem", it, options, game.user.id);
       out.push(it);
     }
     return out;
@@ -365,6 +370,7 @@ const [sword, dagger, plate, wand] = await actor.createEmbeddedDocuments("Item",
   { name: "Wand of Magic Missiles", type: "consumable", system: { rarity: "uncommon", attunement: 1 } }
 ]);
 check(api.riders.of(sword)?.bonus === 2 && api.riders.of(dagger)?.bonus === 1 && api.riders.of(plate)?.kind === "armor" && api.riders.of(plate).bonus === 1 && api.riders.of(wand) === null, "riders detected from attack bonus, name and armor name; none for a wand");
+check(api.riders.of({ name: "Dagger +3", type: "weapon", system: { rarity: "uncommon" } })?.bonus === 1 && api.riders.of({ name: "Dagger +3", type: "weapon", system: { rarity: "veryRare" } })?.bonus === 3, "rider bonus is capped by rarity");
 check(api.slots.disenchantables(actor).length === 4, "four magic items disenchantable");
 
 const essSword = await api.slots.disenchantItem(actor, sword);
@@ -405,6 +411,13 @@ check(slotItems().node3?.flags?.wanderer?.runeId === "hurl", "finished project r
 check(api.slots.essences(actor).some(e => e.getFlag("wanderer", "essence").sourceName === "+1 Breastplate"), "replaced essence returns to the inventory");
 check(riderEffects().length === 1 && riderEffects()[0].getFlag("wanderer", "rider") === "weapon", "armor rider removed with its node");
 await game.settings.set("wanderer", "essenceInstant", false);
+
+// Disenchanting one of a stack leaves the rest
+const [potions] = await actor.createEmbeddedDocuments("Item", [{ name: "Potion of Healing", type: "consumable", system: { rarity: "common", quantity: 3 } }]);
+const essPotion = await api.slots.disenchantItem(actor, potions);
+check(actor.items.get(potions.id)?.system.quantity === 2 && essPotion.getFlag("wanderer", "essence").sourceData.system.quantity === 1, "disenchanting one of a stack of three leaves two");
+await essPotion.delete();
+await potions.delete();
 
 // Timed essence
 const essWand = await api.slots.disenchantItem(actor, wand);
@@ -456,6 +469,16 @@ const coreDoc = new Item(api.items.buildCore(cores[0]), null);
 await api.slots.install(actor, "core", coreDoc);
 check(slotItems().core?.name === "Core of the Wanderer" && slotItems().core.system.consume?.target === rage.id, "dropped core item keeps its name and is wired to Rage");
 await api.slots.remove(actor, "core");
+check(!actor.items.find(i => i.getFlag("wanderer", "coreId")), "removing a seated core destroys the core feat rather than leaving its effects behind");
+// A GM's direct install restores the item exactly on removal
+const club = new Item({ name: "Plain Club", type: "weapon", img: "icons/club.png", system: { attunement: 0, equipped: false, rarity: "" } }, null);
+await api.slots.install(actor, "node3", club);
+const clubOnActor = slotItems().node3;
+check(clubOnActor?.system.attunement === 2 && clubOnActor.system.equipped === true, "direct install attunes and equips the item");
+await api.slots.remove(actor, "node3");
+const clubBack = actor.items.find(i => i.name === "Plain Club");
+check(clubBack && clubBack.system.attunement === 0 && clubBack.system.equipped === false && clubBack.img === "icons/club.png" && !clubBack.getFlag("wanderer", "sourceSystem"), "removal restores attunement, equipped state and icon exactly");
+await clubBack.delete();
 // A GM dropping a rune item straight into a node installs it as a rune (and removal destroys it)
 const runeDoc = new Item(api.items.build(api.runes.get("anvil")), null);
 await api.slots.install(actor, "node3", runeDoc);
@@ -472,7 +495,45 @@ const smuggled = await actor.createEmbeddedDocuments("Item", [api.items.build(ap
 check(smuggled.length === 0 && warnings.at(-1)?.includes("mustCarve"), "a player cannot drag a rune item from the compendium onto the sheet");
 const smuggledCore = await actor.createEmbeddedDocuments("Item", [api.items.buildCore(cores[0])]);
 check(smuggledCore.length === 0, "a player cannot drag the core feat onto the sheet");
+const essenceCopy = await actor.createEmbeddedDocuments("Item", [api.slots.essences(actor)[0].toObject()]);
+check(essenceCopy.length === 0 && warnings.at(-1)?.includes("noEssenceCopies"), "a player cannot duplicate an essence from the sheet");
+// GM-only operations are refused for players at the API level
+const tokenBefore = actor.getFlag("wanderer", "dayToken");
+await api.crafting.grantNewDay(actor);
+check(actor.getFlag("wanderer", "dayToken") === tokenBefore && warnings.at(-1)?.includes("gmOnly"), "a player cannot grant a new day");
+await Hooks.callAll("dnd5e.restCompleted", actor, { longRest: true });
+await new Promise(r => setTimeout(r, 10));
+check(actor.getFlag("wanderer", "dayToken") === tokenBefore + 1, "a player's long rest still turns the day");
+await api.crafting.beginProject(actor, { slot: "node2", kind: "rune", runeId: "vise" });
+await api.crafting.workDays(actor, 10, { ignoreDaily: true });
+check(api.crafting.getProject(actor)?.daysDone === 1, "a player's work is capped to one day regardless of arguments");
+await api.crafting.finishNow(actor);
+check(!!api.crafting.getProject(actor) && warnings.at(-1)?.includes("gmOnly"), "a player cannot finish a project early");
+warnings.length = 0;
+await api.slots.remove(actor, "core");
+check(!!slotItems().core && warnings.at(-1)?.includes("coreGmOnly"), "a player cannot remove the core through the API");
+// sourceUuid is only trusted from the module's own compendium for players
+const srd = new Item({ name: "Flame Tongue", type: "weapon", pack: "dnd5e.items", system: { rarity: "rare" } }, null);
+uuidDocs.set(srd.uuid, srd);
+await api.crafting.abandonProject(actor, { ask: false });
+await api.crafting.beginProject(actor, { slot: "node2", kind: "rune", runeId: "flame-tongue", sourceUuid: srd.uuid });
+check(!api.crafting.getProject(actor) && warnings.at(-1)?.includes("sourceMissing"), "a player cannot carve an arbitrary compendium item through sourceUuid");
+const packAnvil = new Item({ ...api.items.build(api.runes.get("anvil")), pack: "wanderer.runes" }, null);
+uuidDocs.set(packAnvil.uuid, packAnvil);
+await api.crafting.beginProject(actor, { slot: "node2", kind: "rune", runeId: "anvil", sourceUuid: packAnvil.uuid });
+check(api.crafting.getProject(actor)?.sourceUuid === packAnvil.uuid, "a player may carve from the module's own compendium");
+await api.crafting.abandonProject(actor, { ask: false });
 gmUser = true;
+await api.crafting.beginProject(actor, { slot: "node2", kind: "rune", runeId: "flame-tongue", sourceUuid: srd.uuid });
+check(api.crafting.getProject(actor)?.runeId === "flame-tongue", "the GM may carve any item through sourceUuid");
+await api.crafting.abandonProject(actor, { ask: false });
+// The active GM's client removes rune items a player smuggled in with hooks bypassed
+const smuggledItem = new Item(api.items.build(api.runes.get("colossus")), actor);
+actor.items.set(smuggledItem.id, smuggledItem);
+warnings.length = 0;
+Hooks.callAll("createItem", smuggledItem, {}, "u2");
+await new Promise(r => setTimeout(r, 10));
+check(!actor.items.get(smuggledItem.id) && warnings.at(-1)?.includes("watchdog"), "the GM watchdog deletes a smuggled rune item");
 const gmCopy = await actor.createEmbeddedDocuments("Item", [api.items.build(api.runes.get("colossus"))]);
 check(gmCopy.length === 1, "the GM may still place a raw rune item");
 await gmCopy[0].delete();

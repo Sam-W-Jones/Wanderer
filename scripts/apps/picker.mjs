@@ -145,6 +145,11 @@ export class RunePicker extends Application {
     return this.actor.isOwner;
   }
 
+  /** The picker is a drag source only. */
+  _canDragDrop() {
+    return false;
+  }
+
   _onDragStart(event) {
     const runeId = event.currentTarget.dataset.runeId;
     if (!runeId) return;

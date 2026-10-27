@@ -18,6 +18,11 @@
   Thoroughfare (very rare). Hurl, Slam, Fastball and Wrecking Yard carry the throw tag.
 - Socket graphics: a golden arcane sphere for the core and runed blue spheres for the nodes; slotted items take
   their slot's sphere as icon and get their own back when removed. Awakened Core offers Charisma as well.
+- Audit fixes: dialogs no longer wiped by world-time or setting re-renders; removing a seated core destroys the
+  feat; direct installs restore attunement and equipped state; designation refreshes every client's controls and
+  sheet; the library form edits mechanics-bearing runes; `sourceUuid` trusted only from the module pack for
+  players; GM-only operations guarded in the API; riders capped by rarity; essence duplication and compendium
+  drops blocked with a GM watchdog; stacks lose one item per disenchant; tooltips escaped; install debounced.
 - **Wanderer Runes compendium**: every rune as a ready-to-use dnd5e item (Supernatural Gift feature or weapon)
   with activation, limited uses, saves, damage, temporary hit points and passive Active Effects; carving copies
   the compendium item onto the sheet. Unstable Core II spends Overload's use. Carved runes lower the attunement

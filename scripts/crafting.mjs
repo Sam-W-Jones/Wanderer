@@ -87,6 +87,18 @@ async function confirm(title, content) {
   return Dialog.confirm({ title, content: `<p>${content}</p>`, defaultYes: false, options: { classes: ["dialog", "wanderer-app"] } });
 }
 
+/**
+ * Resolve a `sourceUuid` to an Item the current user may carve from: anything for the GM, only the
+ * module's own compendium for players (otherwise any readable item could be carved into a node).
+ */
+export async function trustedRuneDocument(sourceUuid) {
+  if (!sourceUuid) return null;
+  const doc = await fromUuid(sourceUuid).catch(() => null);
+  if (!(doc instanceof Item)) return null;
+  if (game.user.isGM || doc.pack === PACK_ID) return doc;
+  return null;
+}
+
 /** Read a rune definition off an Item carrying wanderer rune flags (a compendium or world rune item). */
 export function runeFromItem(item) {
   if (!item) return null;
@@ -124,7 +136,9 @@ export async function beginProject(actor, { slot, kind, runeId = null, essenceId
   let project;
   if (kind === "rune") {
     let rune = getRune(runeId);
-    if (!rune && sourceUuid) rune = runeFromItem(await fromUuid(sourceUuid).catch(() => null));
+    const doc = await trustedRuneDocument(sourceUuid);
+    if (!doc) sourceUuid = null;
+    if (!rune && doc) rune = runeFromItem(doc);
     const problem = runeAvailability(actor, rune);
     if (problem) return void ui.notifications.warn(problem);
     project = {
@@ -161,6 +175,11 @@ export async function beginProject(actor, { slot, kind, runeId = null, essenceId
 
 /** Spend a day (or several, for the GM) on the current project. */
 export async function workDays(actor, days = 1, { ignoreDaily = false } = {}) {
+  if (!actor.isOwner) return void ui.notifications.warn(L("WANDERER.Craft.notOwner"));
+  if (!game.user.isGM) {
+    days = 1;
+    ignoreDaily = false;
+  }
   const project = getProject(actor);
   if (!project) return void ui.notifications.warn(L("WANDERER.Craft.noProject"));
   if (project.complete) return installProject(actor);
@@ -203,8 +222,8 @@ function resolveUses(formula, actor) {
 export async function runeInstallData(actor, project, rune, slot) {
   let data = null;
   if (project.sourceUuid) {
-    const doc = await fromUuid(project.sourceUuid).catch(() => null);
-    if (doc instanceof Item) data = doc.toObject();
+    const doc = await trustedRuneDocument(project.sourceUuid);
+    if (doc) data = doc.toObject();
   }
   if (!data && rune && rune.source === "builtin") {
     const pack = game.packs?.get(PACK_ID);
@@ -212,7 +231,12 @@ export async function runeInstallData(actor, project, rune, slot) {
     if (doc) data = doc.toObject();
   }
   if (!data && rune && !rune.external) {
-    data = buildRuneItemData(rune, { attunement: attunedData(true), consumeAttunement: runesConsumeAttunement(), withIds: false });
+    data = buildRuneItemData(rune, {
+      attunement: attunedData(true),
+      consumeAttunement: runesConsumeAttunement(),
+      withIds: false,
+      labels: { requirements: L("WANDERER.Item.requirements"), attunement: L("WANDERER.Item.attunementEffect") }
+    });
   }
   if (!data) return null;
 
@@ -245,8 +269,20 @@ export async function runeInstallData(actor, project, rune, slot) {
   return data;
 }
 
+const installing = new Set();
+
 /** Put the finished project into its node, replacing whatever was there. */
 export async function installProject(actor) {
+  if (installing.has(actor.id)) return false;
+  installing.add(actor.id);
+  try {
+    return await installProjectNow(actor);
+  } finally {
+    installing.delete(actor.id);
+  }
+}
+
+async function installProjectNow(actor) {
   const project = getProject(actor);
   if (!project) return false;
   const status = projectStatus(actor);
@@ -295,13 +331,15 @@ export async function abandonProject(actor, { ask = true } = {}) {
   await actor.unsetFlag(MODULE_ID, "project");
 }
 
-/** Reset the once-per-day allowance (long rest, or GM fiat). */
-export async function grantNewDay(actor) {
+/** Reset the once-per-day allowance: GM fiat, or (with `force`) the module's own long-rest handling. */
+export async function grantNewDay(actor, { force = false } = {}) {
+  if (!force && !game.user.isGM) return void ui.notifications.warn(L("WANDERER.Craft.gmOnly"));
   return actor.setFlag(MODULE_ID, "dayToken", getDayToken(actor) + 1);
 }
 
 /** GM: finish the current project immediately. */
 export async function finishNow(actor) {
+  if (!game.user.isGM) return void ui.notifications.warn(L("WANDERER.Craft.gmOnly"));
   const project = getProject(actor);
   if (!project) return;
   const update = foundry.utils.deepClone(project);

@@ -7,11 +7,11 @@ import { RuneLibraryEditor } from "./apps/library-editor.mjs";
 import { LayoutEditor } from "./apps/layout-editor.mjs";
 import { L, isWanderer, myWanderer, wandererActors, rerenderWandererApps, escapeHTML } from "./utils.mjs";
 import {
-  getProject, projectStatus, beginProject, workDays, installProject, abandonProject, grantNewDay, finishNow
+  getProject, projectStatus, beginProject, workDays, installProject, abandonProject, grantNewDay, finishNow, currentWorldDay
 } from "./crafting.mjs";
 import { getRuneLibrary, getRune, saveRune, deleteCustomRune, setRuneDisabled } from "./library.mjs";
 import {
-  getSlotItems, getEssences, disenchantables, disenchantItem, installItemDocument, removeFromSlot
+  getSlotItems, getEssences, disenchantables, disenchantItem, installItemDocument, removeFromSlot, unwireConsumption
 } from "./model.mjs";
 import { BUILTIN_RUNES } from "./runes.mjs";
 import { buildRuneItemData, buildCoreItemData, runeItemId, runePackUuid, corePackUuid, PACK_ID } from "./items.mjs";
@@ -146,9 +146,45 @@ for (const hook of ["createItem", "updateItem", "deleteItem"]) {
 
 Hooks.on("updateActor", (actor, changes) => {
   if (foundry.utils.hasProperty(changes, `flags.${MODULE_ID}`) || ("name" in changes)) refreshFor(actor);
+  // Designation changed: every client refreshes its token controls and reopens the sheet for its header button.
+  if (foundry.utils.hasProperty(changes, `flags.${MODULE_ID}.enabled`)) {
+    ui.controls?.initialize();
+    const sheet = actor.sheet;
+    if (sheet?.rendered) sheet.close().then(() => sheet.render(true));
+  }
 });
 
-Hooks.on("updateWorldTime", () => rerenderWandererApps());
+/** The bench only cares about the day, not every six-second combat tick. */
+let lastWorldDay = null;
+Hooks.on("updateWorldTime", () => {
+  const day = currentWorldDay();
+  if (day === lastWorldDay) return;
+  lastWorldDay = day;
+  rerenderWandererApps();
+});
+
+/** A rune pried off the sheet directly still hands back whatever recovery it changed (Unstable Core II → Overload). */
+Hooks.on("deleteItem", (item, options, userId) => {
+  if (userId !== game.user.id) return;
+  const actor = item.parent;
+  if (!(actor instanceof Actor) || !isWanderer(actor)) return;
+  if (item.getFlag(MODULE_ID, "consumeOf") && item.getFlag(MODULE_ID, "targetUses")) unwireConsumption(actor, item);
+});
+
+/**
+ * Server-side enforcement does not exist for a module, so the active GM's client acts as a watchdog:
+ * rune, core or essence items a player creates outside the module's own flows are removed again.
+ */
+Hooks.on("createItem", (item, options, userId) => {
+  if (game.users.activeGM?.id !== game.user.id) return;
+  if (userId === game.user.id || game.users.get(userId)?.isGM) return;
+  if (!(item.parent instanceof Actor)) return;
+  const f = item.flags?.[MODULE_ID] ?? {};
+  const smuggled = ((f.runeId || f.coreId) && !f.slot) || (!!f.essence && !options?.wandererEssence);
+  if (!smuggled) return;
+  ui.notifications.warn(L("WANDERER.Craft.watchdog", { user: game.users.get(userId)?.name ?? userId, item: item.name }));
+  item.delete();
+});
 
 /* -------------------------------------------- */
 /*  Rules hooks                                 */
@@ -157,17 +193,22 @@ Hooks.on("updateWorldTime", () => rerenderWandererApps());
 /** A long rest turns the day: the work allowance resets, and a seated core asks its Awakened Core choice. */
 Hooks.on("dnd5e.restCompleted", async (actor, result) => {
   if (!isWanderer(actor) || !result?.longRest || !actor.isOwner) return;
-  await grantNewDay(actor);
+  await grantNewDay(actor, { force: true });
   awakenedCoreChoice(actor);
 });
 
-/** Rune and core items reach a sheet only through the core: players cannot drag them in from the compendium. */
+/**
+ * Rune and core items reach a sheet only through the core, and essences only by disenchanting: players
+ * cannot drag them in from a compendium or duplicate them from the sheet.
+ */
 Hooks.on("preCreateItem", (item, data, options, userId) => {
   if (!(item.parent instanceof Actor)) return;
-  const f = item.flags?.[MODULE_ID] ?? {};
-  if (!(f.runeId || f.coreId) || f.slot) return;
   if (game.users.get(userId)?.isGM) return;
-  ui.notifications.warn(L("WANDERER.Craft.mustCarve"));
+  const f = item.flags?.[MODULE_ID] ?? {};
+  const looseRune = (f.runeId || f.coreId) && !f.slot;
+  const looseEssence = !!f.essence && !options?.wandererEssence;
+  if (!looseRune && !looseEssence) return;
+  ui.notifications.warn(L(looseEssence ? "WANDERER.Craft.noEssenceCopies" : "WANDERER.Craft.mustCarve"));
   return false;
 });
 

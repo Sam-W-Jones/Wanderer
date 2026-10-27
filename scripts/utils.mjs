@@ -38,11 +38,17 @@ export function myWanderer() {
   return owned.find(a => a.id === game.user.character?.id) ?? owned[0];
 }
 
-/** Re-render every open Wanderer window (optionally only those for one actor). */
+/**
+ * Re-render the open Wanderer windows that show an actor (the core window, the picker), optionally only
+ * for one actor. Dialogs are never touched (a re-render would wipe what the user is typing) and the
+ * GM editors re-render themselves after their own actions.
+ */
 export function rerenderWandererApps(actorId) {
   for (const app of Object.values(ui.windows)) {
     if (!app?.options?.classes?.includes("wanderer-app")) continue;
-    if (actorId && app.actor?.id !== actorId) continue;
+    if (app instanceof Dialog) continue;
+    if (!app.actor) continue;
+    if (actorId && app.actor.id !== actorId) continue;
     app.render(false);
   }
 }
@@ -64,7 +70,7 @@ export async function promptNumber({ title, label, initial = 1, min = 1 } = {}) 
       content: `<form class="wanderer-prompt"><div class="form-group"><label>${escapeHTML(label)}</label>
         <input type="number" name="value" value="${Number(initial)}" min="${Number(min)}" step="1" autofocus></div></form>`,
       buttons: {
-        ok: { icon: '<i class="fas fa-check"></i>', label: game.i18n.localize("Confirm"),
+        ok: { icon: '<i class="fas fa-check"></i>', label: game.i18n.localize("Yes"),
           callback: html => resolve(Number(html.find("[name=value]").val()) || null) },
         cancel: { icon: '<i class="fas fa-times"></i>', label: game.i18n.localize("Cancel"), callback: () => resolve(null) }
       },

@@ -28,16 +28,27 @@ export function armorTypeOf(data) {
   return data?.system?.type?.value ?? data?.system?.armor?.type ?? "";
 }
 
-/** { kind: "weapon"|"armor", bonus } for +N weapons and armor, else null. Accepts an Item or plain data. */
+/** The largest rider an item of a given rarity can carry (+1 uncommon, +2 rare, +3 very rare, +4 beyond). */
+export const RIDER_CAP = { common: 1, uncommon: 1, rare: 2, veryRare: 3, legendary: 4, artifact: 4 };
+
+function capFor(data) {
+  return RIDER_CAP[data?.system?.rarity] ?? 1;
+}
+
+/**
+ * { kind: "weapon"|"armor", bonus } for +N weapons and armor, else null. Accepts an Item or plain data.
+ * The bonus is read from dnd5e's magical bonus, the attack bonus, or a "+N" in the name, and capped by
+ * rarity so a renamed item cannot mint more than its rarity allows.
+ */
 export function riderOf(data) {
   if (!data) return null;
   const sys = data.system ?? {};
   if (data.type === "weapon") {
-    const bonus = parseBonusField(sys.magicalBonus) || parseBonusField(sys.attackBonus) || parseBonus(data.name);
+    const bonus = Math.min(capFor(data), parseBonusField(sys.magicalBonus) || parseBonusField(sys.attackBonus) || parseBonus(data.name));
     return bonus > 0 ? { kind: "weapon", bonus } : null;
   }
   if (data.type === "equipment" && ARMOR_TYPES.has(armorTypeOf(data))) {
-    const bonus = parseBonusField(sys.armor?.magicalBonus) || parseBonus(data.name);
+    const bonus = Math.min(capFor(data), parseBonusField(sys.armor?.magicalBonus) || parseBonus(data.name));
     return bonus > 0 ? { kind: "armor", bonus } : null;
   }
   return null;

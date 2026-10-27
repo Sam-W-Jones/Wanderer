@@ -103,12 +103,14 @@ export class WandererCoreApp extends Application {
           effect: f.effect ?? "", flavor: f.flavor ?? "",
           rider: f.rider ?? null, riderLabel: riderLabel(f.rider),
           sourceImg: f.sourceImg && f.sourceImg !== item.img ? f.sourceImg : null,
+          tooltipName: escapeHTML(item.name),
           usesLabel,
           description
         };
-        view.tooltip = rarity ? `${item.name} (${rarityLabel(rarity)})` : item.name;
+        // Tooltips are injected as HTML by Foundry, so names are escaped here (the template escapes once more).
+        view.tooltip = escapeHTML(rarity ? `${item.name} (${rarityLabel(rarity)})` : item.name);
       } else {
-        view.tooltip = L("WANDERER.App.emptyTooltip", { label: view.label });
+        view.tooltip = escapeHTML(L("WANDERER.App.emptyTooltip", { label: view.label }));
       }
       slotViews.push(view);
     }

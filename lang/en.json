@@ -113,7 +113,6 @@
       "search": "Search runes…",
       "daysNote": "{days} days of work to carve",
       "carve": "Carve",
-      "carved": "Carved",
       "carvedIn": "Carved · {slot}",
       "locked": "Locked",
       "requires": "requires {name}",
@@ -137,7 +136,10 @@
       "addDaysTitle": "Add days of progress",
       "addDaysLabel": "Days",
       "notOwner": "You do not own this actor.",
-      "mustCarve": "Runes and cores reach the sheet only through the Wanderer's core: carve it, or have the GM seat it."
+      "mustCarve": "Runes and cores reach the sheet only through the Wanderer's core: carve it, or have the GM seat it.",
+      "noEssenceCopies": "Essences come only from disenchanting an item.",
+      "gmOnly": "Only the GM can do that.",
+      "watchdog": "{user} added {item} outside the core; it has been removed."
     },
     "Chat": {
       "worked": "{actor} works on {name} ({done}/{total} days).",
@@ -212,7 +214,6 @@
       "deleteConfirm": "Delete the custom rune {name}?",
       "resetConfirm": "Discard your edits to {name} and restore the built-in version?",
       "form": {
-        "title": "Rune",
         "name": "Name",
         "rarity": "Rarity",
         "effect": "Effect",

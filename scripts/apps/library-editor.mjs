@@ -61,13 +61,13 @@ export class RuneLibraryEditor extends FormApplication {
     switch (btn.dataset.action) {
       case "add": {
         const data = await runeFormDialog(null);
-        if (data) await saveRune(data);
+        if (data) await saveRune(withMechanics(null, data));
         break;
       }
       case "edit": {
         if (!rune) return;
         const data = await runeFormDialog(rune);
-        if (data) await saveRune({ ...data, id, effects: rune.effects, item: rune.item });
+        if (data) await saveRune({ ...withMechanics(rune, data), id, effects: rune.effects });
         break;
       }
       case "toggle": {
@@ -105,14 +105,31 @@ export class RuneLibraryEditor extends FormApplication {
   async _updateObject() {}
 }
 
+/**
+ * Fold the form's activation and uses into the rune's mechanics block, which is what the item builder
+ * reads first, so edits to runes that ship with mechanics (Overload's uses, say) take effect.
+ */
+function withMechanics(rune, data) {
+  const item = { ...(rune?.item ?? {}) };
+  if (data.activation) item.activation = data.activation; else delete item.activation;
+  const max = Number(data.uses?.max ?? 0);
+  if (max > 0) item.uses = { max, per: data.uses?.per || "lr" }; else delete item.uses;
+  const out = { ...data };
+  if (Object.keys(item).length) out.item = item; else delete out.item;
+  return out;
+}
+
 /** A dialog editing one rune. Resolves to the rune fields, or null if cancelled. */
 export async function runeFormDialog(rune) {
   const others = getRuneLibrary({ includeDisabled: true }).filter(r => r.id !== rune?.id);
   const noneLabel = L("WANDERER.Library.form.none");
   // The icon field only shows an explicit override, not the rarity default.
   const imgValue = rune?.img && rune.img !== ICONS[rune.rarity] && rune.img !== ICONS.rune ? rune.img : "";
+  const formRune = rune
+    ? { ...rune, activation: rune.item?.activation ?? rune.activation ?? "", uses: rune.item?.uses ?? rune.uses ?? {} }
+    : { rarity: "uncommon", uses: {} };
   const content = await renderTemplate(TEMPLATES.runeForm, {
-    rune: rune ?? { rarity: "uncommon", uses: {} },
+    rune: formRune,
     imgValue,
     noneLabel,
     rarities: Object.fromEntries(RARITIES.map(value => [value, rarityLabel(value)])),

@@ -61,15 +61,3 @@ export const PHYSICAL_TYPES = ["weapon", "equipment", "consumable", "tool", "loo
 export function isPhysical(item) {
   return PHYSICAL_TYPES.includes(item?.type);
 }
-
-/** Equipment sub-type "trinket", in whichever field the system version uses. */
-export function equipmentTypeData() {
-  if (!isDnd5e()) return {};
-  return systemAtLeast("3.0.0") ? { type: { value: "trinket" } } : { armor: { type: "trinket" } };
-}
-
-/** The "magical" item property, where the system supports it on equipment. */
-export function magicalPropertyData() {
-  if (!isDnd5e()) return {};
-  return systemAtLeast("3.0.0") ? { properties: ["mgc"] } : {};
-}

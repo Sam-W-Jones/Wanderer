@@ -147,6 +147,22 @@ the text:
 
 Seating is immediate; cores are DM-granted and never crafted.
 
+## Safeguards
+
+A module cannot enforce rules on the server, so the guards are layered:
+
+- Players cannot drag rune or core items from the compendium onto a sheet, nor duplicate an essence
+  (`preCreateItem`); the active GM's client additionally removes any such item a player manages to create with
+  hooks bypassed (`createItem` watchdog).
+- Carving from a `sourceUuid` is honoured only for items in the module's own compendium unless the user is the GM.
+- GM-only operations refuse players at the API level too: granting a new day, adding days, finishing a project
+  early, seating or removing the core. A player's long rest still turns the day.
+- Riders are capped by the item's rarity (+1 uncommon, +2 rare, +3 very rare), so a renamed dagger cannot mint a +3.
+- Removing a seated built-in core destroys the core feat (so no stray Awakened Core effect remains); removing an
+  item the GM installed directly restores its attunement, equipped state and icon exactly.
+- Open dialogs are never re-rendered by world-time ticks or setting changes, and the bench re-renders only when
+  the world day changes.
+
 ## "Once per day"
 
 The daily work allowance resets when any of these happen:
