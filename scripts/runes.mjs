@@ -432,20 +432,5 @@ export const BUILTIN_RUNES = [
       actionType: "heal", damage: [["@prof + @abilities.con.mod", "temphp"]],
       chatFlavor: "Temporary hit points; they don't stack with any he already has."
     }
-  },
-  {
-    id: "waygate", name: "Waygate", rarity: "veryRare", tags: ["utility"],
-    effect: "Over an hour he can inscribe a stone arch or doorway as his waystone (one at a time). Once every seven days, he and up to eight willing creatures can step through any arch of worked stone and arrive at the waystone.",
-    flavor: "Every door he has ever walked through is still a door. He has only to remember which.",
-    item: {
-      activation: "action", condition: "Once every seven days; inscribing a waystone takes an hour",
-      uses: { max: 1, per: "charges" }, target: { value: 9, units: "", type: "creature" }, range: { value: null, long: null, units: "touch" }, actionType: "util",
-      chatFlavor: "He and up to eight willing creatures step through an arch of worked stone and arrive at his waystone. Regains its use after seven days."
-    }
-  },
-  {
-    id: "the-long-road", name: "The Long Road", rarity: "veryRare", tags: ["utility"],
-    effect: "He and up to eight companions travelling with him move at a fast pace without penalty, suffer no exhaustion from forced marches or weather, and he always knows the way to any place he has been.",
-    flavor: "He has walked longer than most roads have existed. The roads are catching up."
   }
 ];

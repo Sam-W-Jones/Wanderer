@@ -11,7 +11,7 @@
   Vault Door a bonus action that can't be moved and gives cover, Kinetic Lock 2/short rest, Rune-Burn 3d8 and no
   Disengage) and Bedrock and Mortar added. Nothing denies teleportation.
 - Utility runes: Hollow, Lantern Heart, Makers' Tongue, Riverbed, Stone Sleep, Pumice (uncommon); Mole's Road,
-  Quiet Earth, Stone Tell (rare); Waygate, The Long Road (very rare). Runes carry tags shown in the picker.
+  Quiet Earth, Stone Tell (rare). Runes carry tags shown in the picker.
 - Player-facing note on the picker and bench: master rune-crafters may aid the work, especially on very rares.
 - **Wanderer Runes compendium**: every rune as a ready-to-use dnd5e item (Supernatural Gift feature or weapon)
   with activation, limited uses, saves, damage, temporary hit points and passive Active Effects; carving copies
