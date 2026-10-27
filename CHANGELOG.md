@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.0 (2026-10-27)
+
+- **Foundry v12 and dnd5e 4.x.** The module now runs on Foundry v11 or v12 with dnd5e 3.0 through 4.4. On dnd5e
+  4.x every rune and the Core of the Wanderer are built as Activities (attack, save, heal, damage, check or
+  utility, with the 4.x uses and consumption model); on 3.x the classic item fields are built as before. The
+  shipped compendium carries both shapes, so it reads correctly under either system, and runes carved under 3.x
+  are converted by dnd5e's own migration when the system is upgraded.
+- Unstable Core II and Search the Core link what they spend (Overload's charge, a use of Rage) through the 4.x
+  activity's item-uses consumption target; Overload's short-rest recovery is set through a 4.x recovery profile.
+- Riders read dnd5e's magical bonus, the 3.0 attack bonus, a 4.x attack activity bonus or the name, and strip the
+  4.x base damage bonus on node copies. Active Effects carry both the v11 `icon` and the v12 `img` field.
+- The headless smoke test runs under the dnd5e 3.0.4, 3.3.1 and 4.4.4 item models.
+- Audit fixes for the port: carved runes and seated cores no longer inherit dnd5e 4.x's `migratedUses`
+  bookkeeping from the compendium copy (a later world migration would have refunded spent uses); removing a rune
+  that another rune spends (Overload under Unstable Core II) unlinks the dependant instead of leaving a dangling
+  consumption target, and re-carving links it again; essences harvested under 3.x are run through dnd5e's own
+  migration when slotted on 4.x; on 4.x a core option with nothing to activate no longer reports a Rage link it
+  did not make; the rider reader handles live 4.x activity collections.
+
 ## 0.1.1 (2026-10-27)
 
 - Packaging release: no changes to the module since 0.1.0. Re-cut through the tag-push release workflow, which

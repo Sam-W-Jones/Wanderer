@@ -1,5 +1,9 @@
 import { MODULE_ID, SLOT_IDS, ICONS, SLOT_ICONS } from "./constants.mjs";
-import { attunedData, unattunedData, requiresAttunement, itemRarity, isMagicItem, isPhysical } from "./dnd5e.mjs";
+import {
+  attunedData, unattunedData, requiresAttunement, itemRarity, isMagicItem, isPhysical,
+  hasActivities, primaryActivity, activityId, activitySource, recoveryData, migrateLegacyItemData, stripMigrationFlags
+} from "./dnd5e.mjs";
+import { itemUsesTarget } from "./items.mjs";
 import { slotLabel } from "./settings.mjs";
 import { getRune } from "./library.mjs";
 import { L, postChat, escapeHTML } from "./utils.mjs";
@@ -95,6 +99,8 @@ export function buildSlottedEssenceData(essenceItem, slot) {
   const sourceImg = data.img || ess.sourceImg || essenceItem.img;
   data.img = SLOT_ICONS[slot] ?? sourceImg;
   data.system = data.system ?? {};
+  // An essence harvested under dnd5e 3.x and slotted after an upgrade to 4.x gets dnd5e's own migration first.
+  migrateLegacyItemData(data);
 
   const rider = ess.rider ?? riderOf(original);
   if (rider) stripRiderBonus(data, rider);
@@ -147,9 +153,19 @@ export async function wireConsumption(actor, item) {
       ?? actor.items.find(i => i.name.trim().toLowerCase() === name);
   }
   if (!target || target.id === item.id) return null;
-  await item.update({ "system.consume": { type: "charges", target: target.id, amount: 1, scale: false } });
+  if (hasActivities()) {
+    // 4.x: the item's primary activity gets an "item uses" consumption target pointing at the feature,
+    // replacing any earlier link but keeping the blank target that spends the item's own uses.
+    const activity = primaryActivity(item);
+    if (!activity) return null; // nothing to spend through, so no link was made
+    const targets = (activitySource(activity).consumption?.targets ?? []).filter(t => !(t.type === "itemUses" && t.target));
+    targets.push(itemUsesTarget(target.id));
+    await item.update({ [`system.activities.${activityId(activity)}.consumption.targets`]: targets });
+  } else {
+    await item.update({ "system.consume": { type: "charges", target: target.id, amount: 1, scale: false } });
+  }
   // Some runes change how the feature they spend recovers (Unstable Core II: Overload recharges on a short rest).
-  if (f.targetUses?.per) await target.update({ "system.uses.per": f.targetUses.per });
+  if (f.targetUses?.per) await target.update(recoveryUpdate(f.targetUses.per));
   return target;
 }
 
@@ -159,7 +175,32 @@ export async function unwireConsumption(actor, item) {
   if (!f.consumeOf || !f.targetUses?.per) return;
   const target = actor.items.find(i => i.getFlag(MODULE_ID, "slot") && i.getFlag(MODULE_ID, "runeId") === f.consumeOf);
   const original = getRune(f.consumeOf)?.item?.uses?.per;
-  if (target && original) await target.update({ "system.uses.per": original });
+  if (target && original) await target.update(recoveryUpdate(original));
+}
+
+/** The update that makes an item's uses recover on the given period, in the running system's shape. */
+function recoveryUpdate(per) {
+  return hasActivities() ? { "system.uses.recovery": recoveryData(per) } : { "system.uses.per": per };
+}
+
+/**
+ * When a slotted rune leaves, every slotted item that spends its uses (consumeOf) is pointed away from it,
+ * so nothing on the sheet references a missing item. Re-carving the rune links them again.
+ */
+export async function unlinkDependents(actor, item) {
+  const runeId = slotFlags(item).runeId;
+  if (!runeId) return;
+  for (const other of actor.items) {
+    if (other.id === item.id || !other.getFlag(MODULE_ID, "slot") || other.getFlag(MODULE_ID, "consumeOf") !== runeId) continue;
+    if (hasActivities()) {
+      const activity = primaryActivity(other);
+      if (!activity) continue;
+      const targets = (activitySource(activity).consumption?.targets ?? []).filter(t => !(t.type === "itemUses" && t.target === item.id));
+      await other.update({ [`system.activities.${activityId(activity)}.consumption.targets`]: targets });
+    } else if (other.system?.consume?.target === item.id) {
+      await other.update({ "system.consume": { type: "", target: "", amount: null, scale: false } });
+    }
+  }
 }
 
 /**
@@ -201,6 +242,7 @@ export async function installItemDocument(actor, slot, item, { announce = true }
     if (existing) await removeFromSlot(actor, slot, { announce: false });
     const data = item.toObject();
     delete data._id;
+    stripMigrationFlags(data);
     data.name = name;
     data.img = img;
     data.system = foundry.utils.mergeObject(data.system ?? {}, sys);

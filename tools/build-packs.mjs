@@ -46,8 +46,8 @@ let effects = 0;
 const now = Date.now();
 
 const entries = [
-  ...BUILTIN_RUNES.map(rune => buildRuneItemData(rune)),
-  ...BUILTIN_CORES.map(core => buildCoreItemData(core))
+  ...BUILTIN_RUNES.map(rune => buildRuneItemData(rune, { shape: "both" })),
+  ...BUILTIN_CORES.map(core => buildCoreItemData(core, { shape: "both" }))
 ];
 for (const item of entries) {
   const embedded = item.effects;
@@ -55,7 +55,7 @@ for (const item of entries) {
   item.folder = null;
   item.sort = 0;
   item.ownership = { default: 0 };
-  item._stats = { systemId: "dnd5e", coreVersion: "11.315", createdTime: now, modifiedTime: now, lastModifiedBy: null };
+  item._stats = { systemId: "dnd5e", systemVersion: "3.0.4", coreVersion: "11.315", createdTime: now, modifiedTime: now, lastModifiedBy: null };
   batch.put(`!items!${item._id}`, item);
   items++;
   for (const effect of embedded) {

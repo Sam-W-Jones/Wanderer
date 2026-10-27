@@ -1,6 +1,6 @@
 # The Wanderer's Core
 
-A Foundry VTT v11 module (dnd5e) for one character: a stone body with a glowing core.
+A Foundry VTT v11 / v12 module (dnd5e 3.x or 4.x) for one character: a stone body with a glowing core.
 It adds a crafting overlay drawn over the Wanderer's torso with four slots:
 
 - **Core** (centre): a passive item slot. Only the GM can drop an item in or pull it out.
@@ -22,7 +22,7 @@ the manifest URL:
 https://github.com/Sam-W-Jones/Wanderer/releases/latest/download/module.json
 ```
 
-Then enable **The Wanderer's Core** in the world's module settings. The world must use the dnd5e system.
+Then enable **The Wanderer's Core** in the world's module settings. The world must use the dnd5e system (3.0 or later, including 4.x); Foundry v11 and v12 are both supported.
 
 ## Setting up the Wanderer
 
@@ -240,7 +240,8 @@ api.riders.active(actor);         // { weapon: 2, armor: 1 }
 
 ## Development
 
-- `node tests/smoke.mjs .` runs the headless smoke test (stubbed Foundry; crafting, disenchant, riders, slots).
+- `node tests/smoke.mjs .` runs the headless smoke test (stubbed Foundry; crafting, disenchant, riders, slots);
+  add `--system 4.4.4` to run it against the dnd5e 4.x item model.
 - The [check workflow](.github/workflows/check.yml) runs the syntax check, JSON validation and smoke test on
   every push. The [release workflow](.github/workflows/release.yml) runs when a tag like `v0.2.0` is pushed: it
   stamps `module.json` with the version and repository URLs, zips the module, creates the GitHub release with the
@@ -252,6 +253,8 @@ api.riders.active(actor);         // { weapon: 2, armor: 1 }
 
 ## Notes
 
-- Verified against the dnd5e 2.x/3.x data models (attunement changed shape in 3.2; both are handled). The
-  compendium is built for dnd5e 3.x; 3.2+ migrates its attunement fields on load.
-- Works on Foundry v11 only (Application v1 API, LevelDB packs).
+- Runs on Foundry v11 and v12 (Application v1 API, LevelDB packs) with dnd5e 3.0 through 4.4. On dnd5e 4.x
+  the module builds Activities (attack, save, heal, damage, check or utility, with the 4.x uses and consumption
+  model) for every rune and for the Core of the Wanderer; on 3.x it builds the classic item fields. The shipped
+  compendium carries both shapes, so it reads correctly under either system.
+- Attunement changed shape in dnd5e 3.2 (a string plus an attuned flag); both models are handled.

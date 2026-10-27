@@ -5,6 +5,7 @@
  */
 import { MODULE_ID, NODE_IDS, ICONS } from "./constants.mjs";
 import { getSlotItems } from "./model.mjs";
+import { activityList } from "./dnd5e.mjs";
 import { L } from "./utils.mjs";
 
 const ADD = 2;
@@ -44,7 +45,10 @@ export function riderOf(data) {
   if (!data) return null;
   const sys = data.system ?? {};
   if (data.type === "weapon") {
-    const bonus = Math.min(capFor(data), parseBonusField(sys.magicalBonus) || parseBonusField(sys.attackBonus) || parseBonus(data.name));
+    // magicalBonus (dnd5e 3.1+), the 3.0 attack bonus, a 4.x attack activity's bonus, or the name.
+    const activityBonus = activityList(sys.activities).map(a => a?.attack?.bonus).find(b => parseBonusField(b) > 0);
+    const bonus = Math.min(capFor(data), parseBonusField(sys.magicalBonus) || parseBonusField(sys.attackBonus)
+      || parseBonusField(activityBonus) || parseBonus(data.name));
     return bonus > 0 ? { kind: "weapon", bonus } : null;
   }
   if (data.type === "equipment" && ARMOR_TYPES.has(armorTypeOf(data))) {
@@ -68,6 +72,12 @@ export function stripRiderBonus(data, rider) {
         const [formula, type] = part;
         return [String(formula ?? "").replace(trailing, ""), type];
       });
+    }
+    // dnd5e 4.x: the base damage bonus and attack activities carry the +N instead.
+    const base = sys.damage?.base;
+    if (base && typeof base === "object" && String(base.bonus ?? "").trim() === String(rider.bonus)) base.bonus = "";
+    for (const activity of activityList(sys.activities)) {
+      if (activity?.attack && parseBonusField(activity.attack.bonus) === rider.bonus) activity.attack.bonus = "";
     }
   } else if (rider.kind === "armor") {
     if (sys.armor && "magicalBonus" in sys.armor) sys.armor.magicalBonus = 0;
@@ -99,7 +109,8 @@ function riderEffectData(kind, bonus) {
     : ["system.attributes.ac.bonus"];
   return {
     name: L(`WANDERER.Rider.${kind}`, { bonus: value }),
-    icon: ICONS.essence,
+    icon: ICONS.essence, // v11
+    img: ICONS.essence, // v12
     disabled: false,
     transfer: false,
     changes: keys.map(key => ({ key, mode: ADD, value, priority: 20 })),

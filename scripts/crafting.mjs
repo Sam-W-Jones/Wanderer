@@ -1,7 +1,7 @@
 import { MODULE_ID, SECONDS_PER_DAY, NODE_IDS, SLOT_ICONS } from "./constants.mjs";
 import { getDaysFor, essencesInstant, slotLabel, runesConsumeAttunement } from "./settings.mjs";
 import { getRune, runeIcon } from "./library.mjs";
-import { attunedData, itemRarity } from "./dnd5e.mjs";
+import { attunedData, itemRarity, hasActivities, itemShape, stripMigrationFlags } from "./dnd5e.mjs";
 import { buildRuneItemData, runeItemId, PACK_ID } from "./items.mjs";
 import { getSlotItems, slottedRuneIds, buildSlottedEssenceData, removeFromSlot, prefixedName, wireConsumption } from "./model.mjs";
 import { requestRiderSync } from "./riders.mjs";
@@ -235,12 +235,16 @@ export async function runeInstallData(actor, project, rune, slot) {
       attunement: attunedData(true),
       consumeAttunement: runesConsumeAttunement(),
       withIds: false,
+      shape: itemShape(),
       labels: { requirements: L("WANDERER.Item.requirements"), attunement: L("WANDERER.Item.attunementEffect") }
     });
   }
   if (!data) return null;
 
   delete data._id;
+  // A 4.x compendium copy carries flags.dnd5e.migratedUses, which a later world migration would turn into
+  // a refund of spent uses; the carved item must not inherit it.
+  stripMigrationFlags(data);
   const f = data.flags?.[MODULE_ID] ?? {};
   const sourceName = f.sourceName || rune?.name || data.name;
   const sourceImg = f.sourceImg || data.img;
@@ -260,7 +264,8 @@ export async function runeInstallData(actor, project, rune, slot) {
   };
   data.system = data.system ?? {};
   if (data.type === "feat") data.system.requirements = L("WANDERER.Item.requirementsSlot", { slot: slotLabel(slot) });
-  if (data.system.uses?.max && data.system.uses.value == null) {
+  // 3.x stores the current uses as a number, so a formula maximum is resolved now; 4.x evaluates it live.
+  if (!hasActivities() && data.system.uses?.max && data.system.uses.value == null) {
     const n = resolveUses(data.system.uses.max, actor);
     if (n != null) data.system.uses.value = n;
   }

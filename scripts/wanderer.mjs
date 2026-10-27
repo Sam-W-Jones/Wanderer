@@ -1,3 +1,5 @@
+import { unlinkDependents } from "./model.mjs";
+import { hasActivities } from "./dnd5e.mjs";
 import { MODULE_ID, TEMPLATES, SLOT_IDS, NODE_IDS } from "./constants.mjs";
 import { registerSettings, getLayout, getDaysFor } from "./settings.mjs";
 import { WandererCoreApp, chooseNode } from "./apps/core-app.mjs";
@@ -76,6 +78,8 @@ Hooks.once("init", () => {
 Hooks.once("ready", () => {
   if (game.system.id !== "dnd5e") {
     console.warn(`${MODULE_ID} | Built for dnd5e; running on ${game.system.id}. Attunement and rarity helpers will be no-ops.`);
+  } else {
+    console.log(`${MODULE_ID} | dnd5e ${game.system.version}: building ${hasActivities() ? "activities (4.x)" : "legacy (3.x)"} item data`);
   }
 });
 
@@ -163,12 +167,16 @@ Hooks.on("updateWorldTime", () => {
   rerenderWandererApps();
 });
 
-/** A rune pried off the sheet directly still hands back whatever recovery it changed (Unstable Core II → Overload). */
+/**
+ * A rune pried off the sheet directly still hands back whatever recovery it changed (Unstable Core II →
+ * Overload), and anything that spent its uses is pointed away from it (Overload → Unstable Core II).
+ */
 Hooks.on("deleteItem", (item, options, userId) => {
   if (userId !== game.user.id) return;
   const actor = item.parent;
   if (!(actor instanceof Actor) || !isWanderer(actor)) return;
   if (item.getFlag(MODULE_ID, "consumeOf") && item.getFlag(MODULE_ID, "targetUses")) unwireConsumption(actor, item);
+  if (item.getFlag(MODULE_ID, "slot") && item.getFlag(MODULE_ID, "runeId")) unlinkDependents(actor, item);
 });
 
 /**

@@ -21,5 +21,7 @@ jobs:
         run: |
           node -e "for (const f of ['module.json', 'lang/en.json']) JSON.parse(require('fs').readFileSync(f, 'utf8'))"
 
-      - name: Headless smoke test
-        run: node tests/smoke.mjs .
+      - name: Headless smoke test (dnd5e 3.x and 4.x item models)
+        run: |
+          node tests/smoke.mjs .
+          node tests/smoke.mjs . --system 4.4.4

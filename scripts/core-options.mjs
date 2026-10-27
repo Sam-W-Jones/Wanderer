@@ -5,6 +5,7 @@
 import { MODULE_ID, TEMPLATES, ICONS, SLOT_ICONS } from "./constants.mjs";
 import { BUILTIN_CORES } from "./cores.mjs";
 import { buildCoreItemData, coreItemId, PACK_ID } from "./items.mjs";
+import { itemShape, stripMigrationFlags } from "./dnd5e.mjs";
 import { getSlotItems, removeFromSlot, wireConsumption } from "./model.mjs";
 import { L, postChat, escapeHTML, rerenderWandererApps } from "./utils.mjs";
 
@@ -22,8 +23,9 @@ export async function coreInstallData(core) {
   const pack = game.packs?.get(PACK_ID);
   const doc = pack ? await pack.getDocument(coreItemId(core.id)).catch(() => null) : null;
   if (doc) data = doc.toObject();
-  if (!data) data = buildCoreItemData(core, { withIds: false });
+  if (!data) data = buildCoreItemData(core, { withIds: false, shape: itemShape() });
   delete data._id;
+  stripMigrationFlags(data);
   data.flags = data.flags ?? {};
   data.flags[MODULE_ID] = {
     ...(data.flags[MODULE_ID] ?? {}),

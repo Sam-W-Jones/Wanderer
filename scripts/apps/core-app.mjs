@@ -7,7 +7,7 @@ import {
 import {
   projectStatus, beginProject, workDays, installProject, abandonProject, grantNewDay, finishNow, currentWorldDay
 } from "../crafting.mjs";
-import { isMagicItem, isPhysical, itemRarity } from "../dnd5e.mjs";
+import { isMagicItem, isPhysical, itemRarity, usesPeriod } from "../dnd5e.mjs";
 import { activeRiders, riderLabel } from "../riders.mjs";
 import { L, rarityLabel, kindLabel, isWanderer, escapeHTML, promptNumber } from "../utils.mjs";
 import { RunePicker } from "./picker.mjs";
@@ -92,9 +92,11 @@ export class WandererCoreApp extends Application {
           item.system?.description?.value ?? "", { async: true, secrets: isOwner, relativeTo: item }
         );
         const uses = item.system?.uses;
+        const per = usesPeriod(uses);
+        const perKey = `WANDERER.App.per.${per}`;
         const usesLabel = uses?.max ? L("WANDERER.App.uses", {
           value: uses.value ?? 0, max: uses.max,
-          per: game.i18n.localize(`WANDERER.App.per.${uses.per}`) === `WANDERER.App.per.${uses.per}` ? (uses.per || "") : game.i18n.localize(`WANDERER.App.per.${uses.per}`)
+          per: game.i18n.localize(perKey) === perKey ? per : game.i18n.localize(perKey)
         }) : "";
         view.item = {
           id: item.id, name: item.name, img: item.img,
