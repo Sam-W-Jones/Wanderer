@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 (2026-10-27)
+
+- Packaging release: no changes to the module since 0.1.0. Re-cut through the tag-push release workflow, which
+  now creates the GitHub release and attaches `module.json` and `module.zip` without any local tooling.
+
 ## 0.1.0 (2026-10-27)
 
 - Torso overlay with a GM-only core slot and three craftable nodes, drawn over the concept sheet.
