@@ -60,15 +60,14 @@ A carved rune is copied from the compendium onto the actor as a **Supernatural G
 Wrecking Yard are weapons), named `Rune: …`, with:
 
 - an **activation** (action, bonus, reaction or special) and the triggering condition in its activation text;
-- **limited uses** where the rune says so (Overload, Colossus, Return of Mind 1/long rest; Shockwave, Pile Driver,
-  Kinetic Lock 1/short rest). Unstable Core II spends Overload's use;
+- **limited uses** where the rune says so (Overload, Colossus 1/long rest; Shockwave, Pile Driver, Kinetic Lock
+  1/short rest). Unstable Core II spends Overload's use;
 - **saving throws** with the DC computed from the Wanderer (Overload: Dex save, DC 8 + PB + Con; pushes, pulls,
   trips and Shockwave: Strength save, DC 8 + PB + Str; Pile Driver: Con save, DC from Str), **damage** rolls
   (Overload 5d8 force, Slam 2d6, Hurl 1d6 per 10 ft, Vise = Str modifier, Rune-Burn 2d8 force, Pile Driver fall
   damage) and Rally Core's temporary hit points (PB + Con);
-- **passive Active Effects** applied while carved: Recall (+1 Int), Return of Mind (+2 Int, Int and Wis save
-  proficiency), Tremor Step (tremorsense 10 ft). Colossus carries a 1-minute effect (Large, +1d4 melee damage,
-  midi-qol advantage flags) that is offered on its chat card;
+- **passive Active Effects** applied while carved: Recall (+1 Int), Tremor Step (tremorsense 10 ft). Colossus
+  carries a 1-minute effect (Large, +1d4 melee damage, midi-qol advantage flags) that is offered on its chat card;
 - an **attunement** effect that lowers the actor's attunement maximum by one, so three carved runes use the three
   attunement slots (setting *Carved runes use an attunement slot*).
 
@@ -137,7 +136,7 @@ The bench also gives the GM **Add days** (bulk progress) and **Finish now**.
 
 ## The Wanderer Runes compendium
 
-`packs/runes` ships all 41 runes as ready-to-use items. The picker and the carving code use it: a built-in rune
+`packs/runes` ships all 40 runes (and the core options) as ready-to-use items. The picker and the carving code use it: a built-in rune
 is carved as a copy of its compendium item, so a GM who unlocks the pack and edits a rune's mechanics sees the
 edit on the next carving. Deleting or renaming entries is not supported (ids are fixed per rune); use the rune
 library for new runes or duplicate a compendium item into the world, edit it, and drag it onto a node.

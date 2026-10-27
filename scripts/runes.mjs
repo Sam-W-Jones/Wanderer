@@ -21,7 +21,7 @@
 
 const ADD = 2;      // CONST.ACTIVE_EFFECT_MODES.ADD
 const UPGRADE = 4;  // CONST.ACTIVE_EFFECT_MODES.UPGRADE
-const OVERRIDE = 5; // CONST.ACTIVE_EFFECT_MODES.OVERRIDE
+const OVERRIDE = 5; // CONST.ACTIVE_EFFECT_MODES.OVERRIDE (Colossus size)
 
 const one = { value: 1, units: "", type: "creature" };
 const ally = { value: 1, units: "", type: "ally" };
@@ -307,20 +307,6 @@ export const BUILTIN_RUNES = [
       activation: "reaction", condition: "When an ally within 30 ft is hit", range: ft(30), target: self, actionType: "util",
       chatFlavor: "He enters rage as a reaction. He can hold rage without attacking."
     }
-  },
-  {
-    id: "return-of-mind", name: "Return of Mind", rarity: "veryRare",
-    effect: "+2 Intelligence (max 22); proficiency in Int and Wis saves. 1/LR, ask the DM one question about his own making and receive a true answer as a memory.",
-    flavor: "Not every scar is damage. Some are the places where the writing was, waiting to be read again.",
-    item: { activation: "special", condition: "Ask the DM one question about his own making (1/long rest)", uses: { max: 1, per: "lr" }, target: self, actionType: "util" },
-    effects: [{
-      name: "Return of Mind",
-      changes: [
-        { key: "system.abilities.int.value", mode: ADD, value: "2", priority: 20 },
-        { key: "system.abilities.int.proficient", mode: OVERRIDE, value: "1", priority: 20 },
-        { key: "system.abilities.wis.proficient", mode: OVERRIDE, value: "1", priority: 20 }
-      ]
-    }]
   },
   {
     id: "pile-driver", name: "Pile Driver", rarity: "veryRare",

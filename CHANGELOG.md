@@ -3,8 +3,8 @@
 ## 0.1.0
 
 - Torso overlay with a GM-only core slot and three craftable nodes, drawn over the concept sheet.
-- Rune library: all Uncommon, Rare and Very rare runes from the tables, with a GM editor for custom runes,
-  overrides and disabling.
+- Rune library: the Uncommon, Rare and Very rare runes from the tables (Return of Mind dropped: it overlaps the
+  Core of the Wanderer), with a GM editor for custom runes, overrides and disabling.
 - **Wanderer Runes compendium**: every rune as a ready-to-use dnd5e item (Supernatural Gift feature or weapon)
   with activation, limited uses, saves, damage, temporary hit points and passive Active Effects; carving copies
   the compendium item onto the sheet. Unstable Core II spends Overload's use. Carved runes lower the attunement
