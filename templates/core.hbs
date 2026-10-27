@@ -62,6 +62,7 @@
           {{#if item.effect}}<p class="effect">{{item.effect}}</p>{{/if}}
           {{#if item.flavor}}<p class="flavor">{{item.flavor}}</p>{{/if}}
           {{#if item.riderLabel}}<p class="hint rider"><i class="fas fa-arrow-up-right-dots"></i> {{item.riderLabel}}</p>{{/if}}
+          {{#if item.usesLabel}}<p class="hint"><i class="fas fa-hourglass-half"></i> {{item.usesLabel}}</p>{{/if}}
           {{#if item.description}}<div class="description">{{{item.description}}}</div>{{/if}}
           <div class="actions">
             <button type="button" data-action="open-item" data-item-id="{{item.id}}"><i class="fas fa-book-open"></i> {{localize "WANDERER.App.open"}}</button>
@@ -102,7 +103,7 @@
           </div>
         </div>
         <div class="bar"><div class="fill" style="width: {{project.pct}}%;"></div></div>
-        <div class="days">{{localize "WANDERER.App.days" done=project.done total=project.total}} · {{project.pct}}%</div>
+        <div class="days">{{localize "WANDERER.App.days" done=project.done total=project.total}} · {{project.pct}}%{{#unless project.complete}} · {{localize "WANDERER.App.daysLeft" days=project.daysLeft}}{{/unless}}</div>
         {{#unless project.valid}}<p class="hint warn"><i class="fas fa-triangle-exclamation"></i> {{localize "WANDERER.App.projectInvalid"}}</p>{{/unless}}
         {{#if project.complete}}<p class="hint ok"><i class="fas fa-check"></i> {{localize "WANDERER.App.complete"}}</p>{{/if}}
         {{#if isOwner}}

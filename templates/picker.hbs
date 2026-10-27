@@ -26,7 +26,7 @@
         <div class="rune-actions">
           {{#if packUuid}}<button type="button" class="icon-btn" data-action="view" data-uuid="{{packUuid}}" data-tooltip="{{localize "WANDERER.Picker.view"}}"><i class="fas fa-book"></i></button>{{/if}}
           {{#if taken}}
-          <span class="tag carved"><i class="fas fa-check"></i> {{localize "WANDERER.Picker.carved"}}</span>
+          <span class="tag carved"><i class="fas fa-check"></i> {{carvedLabel}}</span>
           {{else if locked}}
           <span class="tag locked" data-tooltip="{{problem}}"><i class="fas fa-lock"></i> {{localize "WANDERER.Picker.locked"}}</span>
           {{else if @root.isOwner}}

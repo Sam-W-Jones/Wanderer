@@ -161,6 +161,16 @@ Hooks.on("dnd5e.restCompleted", async (actor, result) => {
   awakenedCoreChoice(actor);
 });
 
+/** Rune and core items reach a sheet only through the core: players cannot drag them in from the compendium. */
+Hooks.on("preCreateItem", (item, data, options, userId) => {
+  if (!(item.parent instanceof Actor)) return;
+  const f = item.flags?.[MODULE_ID] ?? {};
+  if (!(f.runeId || f.coreId) || f.slot) return;
+  if (game.users.get(userId)?.isGM) return;
+  ui.notifications.warn(L("WANDERER.Craft.mustCarve"));
+  return false;
+});
+
 /** Only the GM may pull the core item. */
 Hooks.on("preDeleteItem", (item, options, userId) => {
   if (item.getFlag(MODULE_ID, "slot") !== "core") return;

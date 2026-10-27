@@ -91,6 +91,11 @@ export class WandererCoreApp extends Application {
         const description = kind === "rune" ? "" : await TextEditor.enrichHTML(
           item.system?.description?.value ?? "", { async: true, secrets: isOwner, relativeTo: item }
         );
+        const uses = item.system?.uses;
+        const usesLabel = uses?.max ? L("WANDERER.App.uses", {
+          value: uses.value ?? 0, max: uses.max,
+          per: game.i18n.localize(`WANDERER.App.per.${uses.per}`) === `WANDERER.App.per.${uses.per}` ? (uses.per || "") : game.i18n.localize(`WANDERER.App.per.${uses.per}`)
+        }) : "";
         view.item = {
           id: item.id, name: item.name, img: item.img,
           kind, kindLabel: kindLabel(kind),
@@ -98,6 +103,7 @@ export class WandererCoreApp extends Application {
           effect: f.effect ?? "", flavor: f.flavor ?? "",
           rider: f.rider ?? null, riderLabel: riderLabel(f.rider),
           sourceImg: f.sourceImg && f.sourceImg !== item.img ? f.sourceImg : null,
+          usesLabel,
           description
         };
         view.tooltip = rarity ? `${item.name} (${rarityLabel(rarity)})` : item.name;
@@ -146,7 +152,7 @@ export class WandererCoreApp extends Application {
       actor, isGM, isOwner,
       enabled: isWanderer(actor),
       slots: slotViews, links, image,
-      project: { ...status, rarityLabel: rarityLabel(status.rarity) },
+      project: { ...status, rarityLabel: rarityLabel(status.rarity), daysLeft: Math.max(0, (status.total ?? 0) - (status.done ?? 0)) },
       essences,
       riders,
       essenceInstant: essencesInstant(),

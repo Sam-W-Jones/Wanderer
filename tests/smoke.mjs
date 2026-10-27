@@ -203,7 +203,15 @@ globalThis.Actor = class {
   async unsetFlag(s, k) { setProp(this.flags, `${s}.-=${k}`, null); Hooks.callAll("updateActor", this, { flags: { [s]: { [`-=${k}`]: null } } }); }
   async createEmbeddedDocuments(type, arr) {
     if (type === "ActiveEffect") return arr.map(d => { const e = new FakeEffect(d, this); this.effects.set(e.id, e); return e; });
-    return arr.map(d => { const it = new Item(d, this); this.items.set(it.id, it); Hooks.callAll("createItem", it, {}, game.user.id); return it; });
+    const out = [];
+    for (const d of arr) {
+      const it = new Item(d, this);
+      if (Hooks.call("preCreateItem", it, d, {}, game.user.id) === false) continue;
+      this.items.set(it.id, it);
+      Hooks.callAll("createItem", it, {}, game.user.id);
+      out.push(it);
+    }
+    return out;
   }
   async updateEmbeddedDocuments(type, arr) {
     if (type !== "ActiveEffect") throw new Error("unsupported");
@@ -456,6 +464,19 @@ await api.slots.remove(actor, "node3");
 check(!actor.items.find(i => i.getFlag("wanderer", "runeId") === "anvil"), "removing a directly installed rune destroys it rather than leaving a free feature");
 await api.slots.install(actor, "core", sidebarItem);
 
+/* ---------------- Loophole guard ---------------- */
+console.log("\nGuard");
+gmUser = false;
+warnings.length = 0;
+const smuggled = await actor.createEmbeddedDocuments("Item", [api.items.build(api.runes.get("colossus"))]);
+check(smuggled.length === 0 && warnings.at(-1)?.includes("mustCarve"), "a player cannot drag a rune item from the compendium onto the sheet");
+const smuggledCore = await actor.createEmbeddedDocuments("Item", [api.items.buildCore(cores[0])]);
+check(smuggledCore.length === 0, "a player cannot drag the core feat onto the sheet");
+gmUser = true;
+const gmCopy = await actor.createEmbeddedDocuments("Item", [api.items.build(api.runes.get("colossus"))]);
+check(gmCopy.length === 1, "the GM may still place a raw rune item");
+await gmCopy[0].delete();
+
 /* ---------------- Apps render data ---------------- */
 console.log("\nApps");
 const app = new api.apps.WandererCoreApp(actor);
@@ -466,7 +487,8 @@ check(data.slots.find(s => s.id === "node2").item?.riderLabel.includes("+1"), "s
 const picker = new api.apps.RunePicker(actor, "node1");
 const pd = await picker.getData();
 check(pd.groups.length === 3 && pd.groups[0].runes.every(r => r.packUuid?.startsWith("Compendium.wanderer.runes.Item.")), "picker rows link to the compendium");
-check(pd.groups[0].runes.find(r => r.id === "titans-grip")?.taken === true, "picker marks carved rune");
+check(pd.groups[0].runes.find(r => r.id === "titans-grip")?.taken === true && pd.groups[0].runes.find(r => r.id === "titans-grip").carvedLabel.includes("Node I"), "picker marks the carved rune with its node");
+check(data.slots.find(s => s.id === "node1").item?.usesLabel === "" && data.project.daysLeft >= 0, "inspect shows no uses for a passive rune; bench computes days left");
 const ld = await new api.apps.RuneLibraryEditor().getData();
 check(ld.groups.flatMap(g => g.runes).length === 59, "library editor lists all runes");
 

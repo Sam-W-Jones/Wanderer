@@ -1,7 +1,7 @@
 import { MODULE_ID, TEMPLATES } from "../constants.mjs";
 import { getDaysFor, essencesInstant, slotLabel } from "../settings.mjs";
 import { getRuneLibrary, getRune } from "../library.mjs";
-import { getEssences, slottedRuneIds } from "../model.mjs";
+import { getEssences, slottedRuneIds, getSlotItems } from "../model.mjs";
 import { beginProject, runeAvailability } from "../crafting.mjs";
 import { runePackUuid } from "../items.mjs";
 import { itemRarity } from "../dnd5e.mjs";
@@ -49,6 +49,11 @@ export class RunePicker extends Application {
 
   async getData() {
     const carved = slottedRuneIds(this.actor);
+    this._carvedIn = new Map();
+    for (const [slot, item] of Object.entries(getSlotItems(this.actor))) {
+      const runeId = item?.getFlag(MODULE_ID, "runeId");
+      if (runeId) this._carvedIn.set(runeId, slotLabel(slot));
+    }
     const library = getRuneLibrary();
     const byRarity = new Map();
     for (const r of library) {
@@ -96,6 +101,7 @@ export class RunePicker extends Application {
       flavor: rune.flavor ?? "",
       days: getDaysFor(rune.rarity),
       taken,
+      carvedLabel: taken ? L("WANDERER.Picker.carvedIn", { slot: this._carvedIn?.get(rune.id) ?? "" }) : "",
       locked: !taken && !!problem,
       problem: problem ?? "",
       available: !problem,
