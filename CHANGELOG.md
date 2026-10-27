@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0
+## 0.1.0 (2026-10-27)
 
 - Torso overlay with a GM-only core slot and three craftable nodes, drawn over the concept sheet.
 - Rune library: the Uncommon, Rare and Very rare runes from the tables, with a GM editor for custom runes,

@@ -1,12 +1,12 @@
 name: Release
 
-# Publish a GitHub release (tag like v0.2.0) and this stamps module.json with the version
-# and repository URLs, zips the module, and attaches module.json + module.zip to the release.
-# Install URL for players: https://github.com/<owner>/<repo>/releases/latest/download/module.json
+# Push a tag like v0.2.0 and this creates the GitHub release (notes from docs/releases/<tag>.md when present),
+# stamps module.json with the version and repository URLs, zips the module, and attaches module.json + module.zip.
+# Install URL for players: https://github.com/Sam-W-Jones/Wanderer/releases/latest/download/module.json
 
 on:
-  release:
-    types: [published]
+  push:
+    tags: ["v*"]
 
 permissions:
   contents: write
@@ -14,13 +14,14 @@ permissions:
 jobs:
   package:
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+      REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Stamp module.json
-        env:
-          TAG: ${{ github.event.release.tag_name }}
-          REPO: ${{ github.repository }}
         run: |
           VERSION="${TAG#v}"
           jq --arg v "$VERSION" \
@@ -35,8 +36,15 @@ jobs:
       - name: Zip the module
         run: zip -r module.zip module.json README.md CHANGELOG.md lang scripts styles templates assets packs -x "packs/*/LOCK" "packs/*/LOG" "packs/*/LOG.old"
 
+      - name: Create the release if it does not exist
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists"
+          elif [ -f "docs/releases/$TAG.md" ]; then
+            gh release create "$TAG" --title "The Wanderer's Core $TAG" --notes-file "docs/releases/$TAG.md"
+          else
+            gh release create "$TAG" --title "The Wanderer's Core $TAG" --generate-notes
+          fi
+
       - name: Attach assets to the release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
         run: gh release upload "$TAG" module.json module.zip --clobber

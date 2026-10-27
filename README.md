@@ -19,7 +19,7 @@ The module is distributed through GitHub releases. In Foundry, open **Add-on Mod
 the manifest URL:
 
 ```
-https://github.com/OWNER/wanderer/releases/latest/download/module.json
+https://github.com/Sam-W-Jones/Wanderer/releases/latest/download/module.json
 ```
 
 Then enable **The Wanderer's Core** in the world's module settings. The world must use the dnd5e system.
@@ -242,9 +242,12 @@ api.riders.active(actor);         // { weapon: 2, armor: 1 }
 
 - `node tests/smoke.mjs .` runs the headless smoke test (stubbed Foundry; crafting, disenchant, riders, slots).
 - The [check workflow](.github/workflows/check.yml) runs the syntax check, JSON validation and smoke test on
-  every push. The [release workflow](.github/workflows/release.yml) stamps `module.json` and attaches
-  `module.json` and `module.zip` to a published release tagged `vX.Y.Z`; replace `OWNER` in `module.json` and this
-  README with the GitHub account first.
+  every push. The [release workflow](.github/workflows/release.yml) runs when a tag like `v0.2.0` is pushed: it
+  stamps `module.json` with the version and repository URLs, zips the module, creates the GitHub release with the
+  notes from `docs/releases/<tag>.md` (or generated notes when that file is missing), and attaches `module.json`
+  and `module.zip` to it.
+- To cut a release: bump `version` in `module.json`, add the CHANGELOG entry and `docs/releases/vX.Y.Z.md`, rebuild
+  the pack, commit, then `git tag vX.Y.Z` and `git push origin main vX.Y.Z`.
 - For local play without a release, the folder can be placed (or junction-linked) in `Data/modules/wanderer`.
 
 ## Notes
