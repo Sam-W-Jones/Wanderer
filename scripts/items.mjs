@@ -300,7 +300,7 @@ export function buildRuneItemData(rune, {
   const { system, primary } = mechanicsSystem(m, { type, effects, seed: `wanderer:activity:${rune.id}`, shape });
   Object.assign(system, {
     description: { value: runeDescription(rune), chat: "" },
-    source: { custom: "The Wanderer" }
+    source: { custom: "The Wanderer", rules: "2014" }
   });
 
   if (type === "weapon") {
@@ -368,7 +368,7 @@ export function buildCoreItemData(core, { withIds = true, shape = "both" } = {})
   const { system, primary } = mechanicsSystem(m, { type: "feat", effects, seed: `wanderer:activity:core:${core.id}`, shape });
   Object.assign(system, {
     description: { value: core.description ?? "", chat: "" },
-    source: { custom: "The Wanderer" },
+    source: { custom: "The Wanderer", rules: "2014" },
     type: { value: "feat", subtype: "" },
     requirements: core.requirements ?? ""
   });

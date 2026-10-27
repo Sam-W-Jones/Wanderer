@@ -298,6 +298,7 @@ const lantern = built("lantern-heart");
 check(lantern.effects.some(e => e.transfer === false) && primary(lantern).effects.length === 1 && primary(lantern).effects[0]._id === lantern.effects.find(e => e.transfer === false)._id, "4.x: a non-transfer effect is linked to its activity for the chat card");
 check(builtAll.every(d => d.effects.every(e => /^[A-Za-z0-9]{16}$/.test(e._id) && e.img === e.icon)), "effects carry stable ids and both the v11 icon and v12 img fields");
 check(built("stone-tell").system.activation.type === "minute" && built("stone-tell").system.activation.cost === 10 && primary(built("stone-tell")).activation.value === 10 && primary(built("stone-tell")).duration.units === "inst" && primary(built("stone-tell")).range.units === "touch", "both shapes agree on a 10-minute touch activation");
+check(builtAll.every(d => d.system.source.custom === "The Wanderer" && d.system.source.rules === "2014") && api.items.buildCore(api.cores.options()[0]).system.source.rules === "2014", "every rune and the core declare the 2014 rules in their source");
 const burrow = builtAll.find(d => d.flags.wanderer.runeId === "moles-road");
 check(burrow.effects[0].changes[0].key === "system.attributes.movement.burrow" && burrow.effects[0].changes[0].value === "20", "Mole's Road grants a burrow speed by effect");
 const bedrock = builtAll.find(d => d.flags.wanderer.runeId === "bedrock");

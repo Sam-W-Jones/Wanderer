@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 (2026-10-27)
+
+- Every rune and the Core of the Wanderer declare the 2014 rules in their source, so dnd5e 4.x no longer tags
+  them as 2024 content (its default for items that say nothing); dnd5e 3.x ignores the field.
+
 ## 0.2.0 (2026-10-27)
 
 - **Foundry v12 and dnd5e 4.x.** The module now runs on Foundry v11 or v12 with dnd5e 3.0 through 4.4. On dnd5e
