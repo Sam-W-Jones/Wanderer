@@ -12,6 +12,7 @@ import { activeRiders, riderLabel } from "../riders.mjs";
 import { L, rarityLabel, kindLabel, isWanderer, escapeHTML, promptNumber } from "../utils.mjs";
 import { RunePicker } from "./picker.mjs";
 import { openDisenchantDialog } from "./disenchant.mjs";
+import { openCorePicker } from "../core-options.mjs";
 import { RuneLibraryEditor } from "./library-editor.mjs";
 import { LayoutEditor } from "./layout-editor.mjs";
 
@@ -209,6 +210,7 @@ export class WandererCoreApp extends Application {
       }
       case "finish": await finishNow(actor); break;
       case "disenchant": return openDisenchantDialog(actor);
+      case "choose-core": return openCorePicker(actor);
       case "slot-essence": return this._slotEssence(btn.dataset.itemId);
       case "essence-sheet": return actor.items.get(btn.dataset.itemId)?.sheet.render(true);
       case "library": return new RuneLibraryEditor().render(true);

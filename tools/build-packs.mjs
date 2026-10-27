@@ -32,7 +32,8 @@ function loadClassicLevel() {
 
 const ClassicLevel = loadClassicLevel();
 const { BUILTIN_RUNES } = await import(pathToFileURL(path.join(root, "scripts/runes.mjs")).href);
-const { buildRuneItemData } = await import(pathToFileURL(path.join(root, "scripts/items.mjs")).href);
+const { BUILTIN_CORES } = await import(pathToFileURL(path.join(root, "scripts/cores.mjs")).href);
+const { buildRuneItemData, buildCoreItemData } = await import(pathToFileURL(path.join(root, "scripts/items.mjs")).href);
 
 const packDir = path.join(root, "packs", "runes");
 fs.rmSync(packDir, { recursive: true, force: true });
@@ -44,8 +45,11 @@ let items = 0;
 let effects = 0;
 const now = Date.now();
 
-for (const rune of BUILTIN_RUNES) {
-  const item = buildRuneItemData(rune);
+const entries = [
+  ...BUILTIN_RUNES.map(rune => buildRuneItemData(rune)),
+  ...BUILTIN_CORES.map(core => buildCoreItemData(core))
+];
+for (const item of entries) {
   const embedded = item.effects;
   item.effects = embedded.map(e => e._id);
   item.folder = null;

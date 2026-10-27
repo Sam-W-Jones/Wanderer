@@ -128,6 +128,26 @@ export function essenceFromSlotted(item) {
 }
 
 /**
+ * Point a slotted item's consumption at the feature it spends: `consumeOf` names a carved rune
+ * (Unstable Core II → Overload), `consumeNamed` a feature by name (Search the Core → Rage).
+ * Returns the linked Item, or null if there is nothing to link to.
+ */
+export async function wireConsumption(actor, item) {
+  const f = slotFlags(item);
+  let target = null;
+  if (f.consumeOf) {
+    target = actor.items.find(i => i.getFlag(MODULE_ID, "slot") && i.getFlag(MODULE_ID, "runeId") === f.consumeOf);
+  } else if (f.consumeNamed) {
+    const name = String(f.consumeNamed).trim().toLowerCase();
+    target = actor.items.find(i => i.type === "feat" && i.name.trim().toLowerCase() === name)
+      ?? actor.items.find(i => i.name.trim().toLowerCase() === name);
+  }
+  if (!target || target.id === item.id) return null;
+  await item.update({ "system.consume": { type: "charges", target: target.id, amount: 1, scale: false } });
+  return target;
+}
+
+/**
  * Put an existing Item document into a slot as-is (the core, or a GM's direct install into a node).
  * Items already owned by the actor are flagged in place; anything else is copied onto the actor.
  */
@@ -135,7 +155,9 @@ export async function installItemDocument(actor, slot, item, { announce = true }
   const existing = getSlotItems(actor)[slot];
   const kind = slot === "core" ? "core" : "item";
   const attune = slot !== "core" || requiresAttunement(item);
-  const flags = { slot, kind, rarity: itemRarity(item), sourceName: item.name };
+  const own = slotFlags(item);
+  const flags = { ...own, slot, kind, rarity: itemRarity(item), sourceName: own.sourceName || item.name };
+  const name = own.coreId ? item.name : prefixedName(kind, item.name);
   const sys = {};
   if (attune) Object.assign(sys, attunedData(true));
   if (["weapon", "equipment"].includes(item.type)) sys.equipped = true;
@@ -143,7 +165,7 @@ export async function installItemDocument(actor, slot, item, { announce = true }
   let result;
   if (item.parent === actor) {
     if (existing && existing.id !== item.id) await removeFromSlot(actor, slot, { announce: false });
-    const update = { name: prefixedName(kind, item.name), [`flags.${MODULE_ID}`]: flags };
+    const update = { name, [`flags.${MODULE_ID}`]: flags };
     for (const [k, v] of Object.entries(sys)) update[`system.${k}`] = v;
     await item.update(update);
     result = item;
@@ -151,13 +173,14 @@ export async function installItemDocument(actor, slot, item, { announce = true }
     if (existing) await removeFromSlot(actor, slot, { announce: false });
     const data = item.toObject();
     delete data._id;
-    data.name = prefixedName(kind, item.name);
+    data.name = name;
     data.system = foundry.utils.mergeObject(data.system ?? {}, sys);
     data.flags = data.flags ?? {};
     data.flags[MODULE_ID] = flags;
     [result] = await actor.createEmbeddedDocuments("Item", [data]);
   }
 
+  await wireConsumption(actor, result);
   requestRiderSync(actor);
   if (announce) {
     const key = slot === "core" ? "WANDERER.Chat.coreSet" : "WANDERER.Chat.installed";

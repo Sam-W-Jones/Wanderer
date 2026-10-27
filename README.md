@@ -108,6 +108,23 @@ core item from their sheet.
 
 GM drops on a *node* offer a choice: install directly (no crafting), or disenchant and craft.
 
+#### Built-in core: Core of the Wanderer
+
+**Choose a core…** on the core's inspect panel (GM only) lists the built-in core options and seats one with a
+click; the same item sits in the compendium and can be dragged onto the core instead. Seating replaces the
+current core item. **Core of the Wanderer** (`scripts/cores.mjs`) is a granted feat with the three features from
+the text:
+
+- **Awakened Core**: after each long rest the owner is asked to choose Intelligence or Wisdom. The chosen score
+  gets +1 through one of two Active Effects on the feat (the other is disabled) until the next long rest, and
+  nothing is granted once the score would pass 20.
+- **The Old Machinery**: description only, at the DM's discretion.
+- **Search the Core**: a usable feature, 1 per long rest, 10 minutes, that spends one use of **Rage**. The link
+  is made when the core is seated by finding a feature named Rage on the sheet; if there is none yet, a warning
+  says so and the consumption can be set by hand on the item.
+
+Seating is immediate; cores are DM-granted and never crafted.
+
 ## "Once per day"
 
 The daily work allowance resets when any of these happen:

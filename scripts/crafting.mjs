@@ -3,7 +3,7 @@ import { getDaysFor, essencesInstant, slotLabel, runesConsumeAttunement } from "
 import { getRune, runeIcon } from "./library.mjs";
 import { attunedData, itemRarity } from "./dnd5e.mjs";
 import { buildRuneItemData, runeItemId, PACK_ID } from "./items.mjs";
-import { getSlotItems, slottedRuneIds, buildSlottedEssenceData, removeFromSlot, prefixedName } from "./model.mjs";
+import { getSlotItems, slottedRuneIds, buildSlottedEssenceData, removeFromSlot, prefixedName, wireConsumption } from "./model.mjs";
 import { requestRiderSync } from "./riders.mjs";
 import { L, postChat, escapeHTML } from "./utils.mjs";
 
@@ -228,9 +228,8 @@ export async function installProject(actor) {
   if (!status.complete) return false;
 
   let data;
-  let rune = null;
   if (project.kind === "rune") {
-    rune = getRune(project.runeId);
+    const rune = getRune(project.runeId);
     data = await runeInstallData(project, rune, project.slot);
     if (!data) return void ui.notifications.warn(L("WANDERER.Craft.sourceMissing", { name: project.name }));
   } else {
@@ -244,11 +243,7 @@ export async function installProject(actor) {
   if (project.kind === "essence") await actor.items.get(project.essenceId)?.delete();
 
   // A rune that spends another rune's uses (Unstable Core II → Overload) is pointed at it.
-  const consumeOf = data.flags?.[MODULE_ID]?.consumeOf ?? rune?.item?.consumeOf;
-  if (created && consumeOf) {
-    const target = actor.items.find(i => i.getFlag(MODULE_ID, "slot") && i.getFlag(MODULE_ID, "runeId") === consumeOf);
-    if (target) await created.update({ "system.consume": { type: "charges", target: target.id, amount: 1, scale: false } });
-  }
+  if (created) await wireConsumption(actor, created);
 
   await actor.unsetFlag(MODULE_ID, "project");
   requestRiderSync(actor);

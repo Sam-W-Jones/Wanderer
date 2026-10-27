@@ -5,6 +5,7 @@ export const TEMPLATES = {
   core: `modules/${MODULE_ID}/templates/core.hbs`,
   picker: `modules/${MODULE_ID}/templates/picker.hbs`,
   disenchant: `modules/${MODULE_ID}/templates/disenchant.hbs`,
+  corePicker: `modules/${MODULE_ID}/templates/core-picker.hbs`,
   library: `modules/${MODULE_ID}/templates/library.hbs`,
   runeForm: `modules/${MODULE_ID}/templates/rune-form.hbs`,
   layout: `modules/${MODULE_ID}/templates/layout.hbs`

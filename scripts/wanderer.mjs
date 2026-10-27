@@ -14,8 +14,9 @@ import {
   getSlotItems, getEssences, disenchantables, disenchantItem, installItemDocument, removeFromSlot
 } from "./model.mjs";
 import { BUILTIN_RUNES } from "./runes.mjs";
-import { buildRuneItemData, runeItemId, runePackUuid, PACK_ID } from "./items.mjs";
+import { buildRuneItemData, buildCoreItemData, runeItemId, runePackUuid, corePackUuid, PACK_ID } from "./items.mjs";
 import { activeRiders, syncRiders, requestRiderSync, riderOf } from "./riders.mjs";
+import { getCoreOptions, seatCore, openCorePicker, awakenedCoreChoice } from "./core-options.mjs";
 
 /* -------------------------------------------- */
 /*  Helpers                                     */
@@ -60,8 +61,9 @@ Hooks.once("init", () => {
     runes: { builtin: BUILTIN_RUNES, library: getRuneLibrary, get: getRune, save: saveRune, remove: deleteCustomRune, setDisabled: setRuneDisabled },
     crafting: { getProject, projectStatus, beginProject, workDays, installProject, abandonProject, grantNewDay, finishNow, getDaysFor },
     slots: { ids: SLOT_IDS, nodes: NODE_IDS, items: getSlotItems, essences: getEssences, disenchantables, disenchantItem, install: installItemDocument, remove: removeFromSlot },
-    items: { build: buildRuneItemData, id: runeItemId, uuid: runePackUuid, pack: PACK_ID },
+    items: { build: buildRuneItemData, buildCore: buildCoreItemData, id: runeItemId, uuid: runePackUuid, coreUuid: corePackUuid, pack: PACK_ID },
     riders: { active: activeRiders, of: riderOf, sync: syncRiders, request: requestRiderSync },
+    cores: { options: getCoreOptions, seat: seatCore, choose: openCorePicker, awakened: awakenedCoreChoice },
     layout: getLayout,
     isWanderer,
     myWanderer,
@@ -152,10 +154,11 @@ Hooks.on("updateWorldTime", () => rerenderWandererApps());
 /*  Rules hooks                                 */
 /* -------------------------------------------- */
 
-/** A long rest turns the day: the once-per-day work allowance resets. */
-Hooks.on("dnd5e.restCompleted", (actor, result) => {
+/** A long rest turns the day: the work allowance resets, and a seated core asks its Awakened Core choice. */
+Hooks.on("dnd5e.restCompleted", async (actor, result) => {
   if (!isWanderer(actor) || !result?.longRest || !actor.isOwner) return;
-  grantNewDay(actor);
+  await grantNewDay(actor);
+  awakenedCoreChoice(actor);
 });
 
 /** Only the GM may pull the core item. */

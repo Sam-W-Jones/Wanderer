@@ -115,6 +115,7 @@ globalThis.Handlebars = { registerHelper() {} };
 globalThis.loadTemplates = async () => {};
 globalThis.renderTemplate = async () => "<form></form>";
 globalThis.CONST = {};
+globalThis.CONFIG = {};
 globalThis.FilePicker = class {};
 globalThis.FormDataExtended = class { constructor() { this.object = {}; } };
 
@@ -160,8 +161,14 @@ globalThis.Item = class {
   constructor(data, parent = null) {
     this._id = data._id ?? newId();
     this.name = data.name; this.type = data.type; this.img = data.img;
-    this.system = deepClone(data.system ?? {}); this.flags = deepClone(data.flags ?? {}); this.effects = deepClone(data.effects ?? []);
+    this.system = deepClone(data.system ?? {}); this.flags = deepClone(data.flags ?? {});
+    this.effects = deepClone(data.effects ?? []).map(e => ({ _id: e._id ?? newId(), ...e }));
     this.parent = parent;
+  }
+  async updateEmbeddedDocuments(type, arr) {
+    if (type !== "ActiveEffect") throw new Error("unsupported");
+    for (const u of arr) { const e = this.effects.find(x => x._id === u._id); if (e) Object.assign(e, deepClone(u)); }
+    return arr;
   }
   static get implementation() { return Item; }
   get id() { return this._id; }
@@ -184,7 +191,11 @@ globalThis.Item = class {
   }
 };
 globalThis.Actor = class {
-  constructor() { this.id = "a1"; this.name = "The Wanderer"; this.type = "character"; this.flags = {}; this.items = new Coll(); this.effects = new Coll(); }
+  constructor() {
+    this.id = "a1"; this.name = "The Wanderer"; this.type = "character"; this.flags = {};
+    this.system = { abilities: { int: { value: 12 }, wis: { value: 14 } } };
+    this.items = new Coll(); this.effects = new Coll();
+  }
   get isOwner() { return true; }
   get uuid() { return `Actor.${this.id}`; }
   getFlag(s, k) { return getProp(this.flags, `${s}.${k}`); }
@@ -384,6 +395,37 @@ gmUser = true;
 await api.slots.remove(actor, "core");
 const leftover = actor.items.find(i => i.name === "Amulet of Health");
 check(!slotItems().core && leftover && leftover.system.attunement === 1, "GM removal unflags, restores name and un-attunes");
+
+/* ---------------- Core options ---------------- */
+console.log("\nCore options");
+const cores = api.cores.options();
+check(cores.length === 1 && cores[0].id === "core-of-the-wanderer", "one built-in core option");
+const builtCore = api.items.buildCore(cores[0]);
+check(builtCore.type === "feat" && builtCore.system.type.value === "feat" && builtCore.system.requirements.includes("Kar"), "Core of the Wanderer builds as a feat with its prerequisite");
+check(builtCore.system.uses.max === "1" && builtCore.system.uses.per === "lr" && builtCore.system.activation.type === "minute" && builtCore.system.activation.cost === 10, "Search the Core: 1/long rest over 10 minutes");
+check(builtCore.effects.length === 2 && builtCore.effects.every(e => e.disabled && e.transfer) && builtCore.effects.map(e => e.flags.wanderer.awakened).join() === "int,wis", "two disabled Awakened Core effects (Int, Wis)");
+check(/^[A-Za-z0-9]{16}$/.test(builtCore._id) && !ids.includes(builtCore._id), "core compendium id valid and distinct from rune ids");
+const [rage] = await actor.createEmbeddedDocuments("Item", [{ name: "Rage", type: "feat", system: { uses: { value: 3, max: "3", per: "lr" } } }]);
+const seated = await api.cores.seat(actor, "core-of-the-wanderer");
+check(slotItems().core?.id === seated.id && seated.name === "Core of the Wanderer" && seated.flags.wanderer.kind === "core" && seated.flags.wanderer.coreId === "core-of-the-wanderer", "core seated without a name prefix and flagged as the core");
+check(seated.system.consume?.type === "charges" && seated.system.consume.target === rage.id, "Search the Core spends a use of Rage");
+check(!actor.items.find(i => i.name === "Amulet of Health" && i.getFlag("wanderer", "slot")), "seating replaced the previous core item");
+const chosen = await api.cores.awakened(actor);
+const eff = ab => seated.effects.find(e => e.flags.wanderer.awakened === ab);
+check(chosen === "int" && eff("int").disabled === false && eff("wis").disabled === true, "long-rest choice enables Intelligence and disables Wisdom");
+actor.system.abilities.int.value = 21; // 20 base + the active effect
+const capped = await api.cores.awakened(actor);
+check(capped === null && eff("int").disabled === true && eff("wis").disabled === true, "Awakened Core grants nothing once the score is 20");
+actor.system.abilities.int.value = 12;
+await Hooks.callAll("dnd5e.restCompleted", actor, { longRest: true });
+await new Promise(r => setTimeout(r, 10));
+check(eff("int").disabled === false, "long rest hook runs the Awakened Core choice");
+// Dropping the compendium-style core item onto the core keeps its name and links Rage
+const coreDoc = new Item(api.items.buildCore(cores[0]), null);
+await api.slots.install(actor, "core", coreDoc);
+check(slotItems().core?.name === "Core of the Wanderer" && slotItems().core.system.consume?.target === rage.id, "dropped core item keeps its name and is wired to Rage");
+await api.slots.remove(actor, "core");
+await api.slots.install(actor, "core", sidebarItem);
 
 /* ---------------- Apps render data ---------------- */
 console.log("\nApps");

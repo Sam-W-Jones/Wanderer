@@ -47,7 +47,25 @@
       },
       "riders": "Riders",
       "ridersNone": "none",
-      "ridersHint": "riders do not stack; the highest bonus among the nodes applies."
+      "ridersHint": "riders do not stack; the highest bonus among the nodes applies.",
+      "chooseCore": "Choose a core…"
+    },
+    "CorePicker": {
+      "title": "Seat a core",
+      "intro": "Built-in cores. Seating one replaces whatever is in the core slot; it becomes a feat on the sheet.",
+      "seat": "Seat",
+      "seated": "Seated",
+      "replace": "The core holds {name}. Replace it with {core}?"
+    },
+    "Core": {
+      "consumeMissing": "No feature named {feature} was found on the sheet, so {item} is not linked to it. Set its consumption by hand once the feature exists."
+    },
+    "Awakened": {
+      "title": "Awakened Core",
+      "prompt": "Choose the score that increases by 1 until the next long rest (to a maximum of 20).",
+      "neither": "Neither",
+      "chosen": "Awakened Core: {ability} +1 until the next long rest.",
+      "capped": "{ability} is already 20; Awakened Core grants nothing this rest."
     },
     "Rider": {
       "weapon": "Node rider: weapon {bonus}",

@@ -1,0 +1,19 @@
+<div class="core-picker">
+  <p class="hint">{{localize "WANDERER.CorePicker.intro"}}</p>
+  {{#each cores}}
+  <div class="rune-row core-row{{#if current}} taken{{/if}}" data-core-id="{{id}}">
+    <img class="rune-icon" src="{{img}}" alt="" draggable="false">
+    <div class="rune-text">
+      <div class="rune-name">{{name}}{{#if requirements}} <span class="req"><i class="fas fa-link"></i> {{requirements}}</span>{{/if}}</div>
+      <div class="rune-effect">{{summary}}</div>
+    </div>
+    <div class="rune-actions">
+      {{#if current}}
+      <span class="tag carved"><i class="fas fa-check"></i> {{localize "WANDERER.CorePicker.seated"}}</span>
+      {{else}}
+      <button type="button" data-action="seat"><i class="fas fa-gem"></i> {{localize "WANDERER.CorePicker.seat"}}</button>
+      {{/if}}
+    </div>
+  </div>
+  {{/each}}
+</div>

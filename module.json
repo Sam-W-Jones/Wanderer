@@ -23,7 +23,7 @@
   "packs": [
     {
       "name": "runes",
-      "label": "Wanderer Runes",
+      "label": "Wanderer Runes & Cores",
       "path": "packs/runes",
       "type": "Item",
       "system": "dnd5e",

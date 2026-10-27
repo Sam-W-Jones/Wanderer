@@ -65,6 +65,7 @@
           <div class="actions">
             <button type="button" data-action="open-item" data-item-id="{{item.id}}"><i class="fas fa-book-open"></i> {{localize "WANDERER.App.open"}}</button>
             {{#if canEdit}}<button type="button" class="danger" data-action="remove"><i class="fas fa-trash"></i> {{localize "WANDERER.App.remove"}}</button>{{/if}}
+            {{#if isCore}}{{#if @root.isGM}}<button type="button" data-action="choose-core"><i class="fas fa-gem"></i> {{localize "WANDERER.App.chooseCore"}}</button>{{/if}}{{/if}}
           </div>
         {{else if isProject}}
           <div class="item-head">
@@ -75,7 +76,10 @@
         {{else}}
           {{#if isCore}}
           <p class="hint">{{localize "WANDERER.App.coreEmpty"}}</p>
-          {{#if @root.isGM}}<p class="hint gm"><i class="fas fa-hand-pointer"></i> {{localize "WANDERER.App.coreDropHint"}}</p>{{/if}}
+          {{#if @root.isGM}}
+          <p class="hint gm"><i class="fas fa-hand-pointer"></i> {{localize "WANDERER.App.coreDropHint"}}</p>
+          <div class="actions"><button type="button" data-action="choose-core"><i class="fas fa-gem"></i> {{localize "WANDERER.App.chooseCore"}}</button></div>
+          {{/if}}
           {{else}}
           <p class="hint">{{localize "WANDERER.App.nodeEmpty"}}</p>
           {{#if canCraft}}<div class="actions"><button type="button" data-action="craft"><i class="fas fa-hammer"></i> {{localize "WANDERER.App.chooseRune"}}</button></div>{{/if}}

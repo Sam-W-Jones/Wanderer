@@ -1,10 +1,10 @@
 /**
- * Turns a rune definition (scripts/runes.mjs) into complete dnd5e item data.
+ * Turns rune and core definitions (scripts/runes.mjs, scripts/cores.mjs) into complete dnd5e item data.
  *
  * This file has no Foundry dependencies so the same code builds the shipped compendium
- * (tools/build-packs.mjs, run under Node) and the items carved at the table.
+ * (tools/build-packs.mjs, run under Node) and the items carved or seated at the table.
  */
-import { MODULE_ID } from "./constants.mjs";
+import { MODULE_ID, ICONS } from "./constants.mjs";
 import { runeIcon } from "./library.mjs";
 
 export const PACK_ID = `${MODULE_ID}.runes`;
@@ -12,6 +12,7 @@ export const PACK_ID = `${MODULE_ID}.runes`;
 const ADD = 2;
 const clone = v => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
 const ID_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const ABILITY_NAMES = { str: "Strength", dex: "Dexterity", con: "Constitution", int: "Intelligence", wis: "Wisdom", cha: "Charisma" };
 
 /** A deterministic 16-character Foundry id derived from a string, so pack ids survive rebuilds. */
 export function stableId(seed) {
@@ -43,6 +44,15 @@ export function runePackUuid(runeId) {
   return `Compendium.${PACK_ID}.Item.${runeItemId(runeId)}`;
 }
 
+/** The compendium id of a built-in core option's item. */
+export function coreItemId(coreId) {
+  return stableId(`wanderer:core:${coreId}`);
+}
+
+export function corePackUuid(coreId) {
+  return `Compendium.${PACK_ID}.Item.${coreItemId(coreId)}`;
+}
+
 function escape(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -60,6 +70,26 @@ const DEFAULT_LABELS = {
   requirements: "Carved into the Wanderer's core",
   attunement: "Attunement (carved rune)"
 };
+
+/** The activation / action fields shared by features and weapons, from a mechanics block. */
+function actionSystem(m) {
+  return {
+    activation: { type: m.activation ?? "", cost: m.activation ? (m.cost ?? 1) : null, condition: m.condition ?? "" },
+    duration: { value: m.duration?.value ?? null, units: m.duration?.units ?? "" },
+    target: { value: m.target?.value ?? null, width: m.target?.width ?? null, units: m.target?.units ?? "", type: m.target?.type ?? "" },
+    range: { value: m.range?.value ?? null, long: m.range?.long ?? null, units: m.range?.units ?? "" },
+    uses: { value: m.uses?.max ? Number(m.uses.max) : null, max: m.uses?.max ? String(m.uses.max) : "", per: m.uses?.per ?? "", recovery: "" },
+    consume: { type: "", target: null, amount: null, scale: false },
+    ability: m.ability ?? "",
+    actionType: m.actionType ?? "",
+    attackBonus: "",
+    chatFlavor: m.chatFlavor ?? "",
+    critical: { threshold: null, damage: "" },
+    damage: { parts: clone(m.damage ?? []), versatile: "" },
+    formula: "",
+    save: { ability: m.save?.ability ?? "", dc: null, scaling: m.save?.scaling ?? "spell" }
+  };
+}
 
 /**
  * Build item data for a rune.
@@ -81,20 +111,7 @@ export function buildRuneItemData(rune, { attunement = { attunement: 2 }, consum
   const system = {
     description: { value: runeDescription(rune), chat: "" },
     source: "The Wanderer",
-    activation: { type: m.activation ?? "", cost: m.activation ? 1 : null, condition: m.condition ?? "" },
-    duration: { value: m.duration?.value ?? null, units: m.duration?.units ?? "" },
-    target: { value: m.target?.value ?? null, width: m.target?.width ?? null, units: m.target?.units ?? "", type: m.target?.type ?? "" },
-    range: { value: m.range?.value ?? null, long: m.range?.long ?? null, units: m.range?.units ?? "" },
-    uses: { value: m.uses?.max ? Number(m.uses.max) : null, max: m.uses?.max ? String(m.uses.max) : "", per: m.uses?.per ?? "", recovery: "" },
-    consume: { type: "", target: null, amount: null, scale: false },
-    ability: m.ability ?? "",
-    actionType: m.actionType ?? "",
-    attackBonus: "",
-    chatFlavor: m.chatFlavor ?? "",
-    critical: { threshold: null, damage: "" },
-    damage: { parts: clone(m.damage ?? []), versatile: "" },
-    formula: "",
-    save: { ability: m.save?.ability ?? "", dc: null, scaling: m.save?.scaling ?? "spell" }
+    ...actionSystem(m)
   };
 
   if (type === "weapon") {
@@ -154,6 +171,50 @@ export function buildRuneItemData(rune, { attunement = { attunement: 2 }, consum
         requires: rune.requires ?? null,
         consumeOf: m.consumeOf ?? null,
         sourceName: rune.name
+      }
+    }
+  };
+}
+
+/**
+ * Build item data for a core option: a feat with its activated part (if any) and one disabled
+ * Active Effect per Awakened Core ability, toggled by the long-rest choice.
+ */
+export function buildCoreItemData(core, { withIds = true } = {}) {
+  const m = core.item ?? {};
+  const img = core.img || ICONS.core;
+  const system = {
+    description: { value: core.description ?? "", chat: "" },
+    source: "The Wanderer",
+    type: { value: "feat", subtype: "" },
+    requirements: core.requirements ?? "",
+    ...actionSystem(m)
+  };
+
+  const effects = (core.awakened ?? []).map(ab => ({
+    ...(withIds ? { _id: stableId(`wanderer:core-effect:${core.id}:${ab}`) } : {}),
+    name: `Awakened Core (${ABILITY_NAMES[ab] ?? ab})`,
+    icon: img,
+    transfer: true,
+    disabled: true,
+    duration: {},
+    changes: [{ key: `system.abilities.${ab}.value`, mode: ADD, value: "1", priority: 20 }],
+    flags: { [MODULE_ID]: { awakened: ab } }
+  }));
+
+  return {
+    ...(withIds ? { _id: coreItemId(core.id) } : {}),
+    name: core.name,
+    type: "feat",
+    img,
+    system,
+    effects,
+    flags: {
+      [MODULE_ID]: {
+        coreId: core.id,
+        sourceName: core.name,
+        consumeNamed: m.consumeNamed ?? null,
+        awakened: clone(core.awakened ?? [])
       }
     }
   };
