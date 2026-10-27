@@ -335,6 +335,25 @@ export const BUILTIN_RUNES = [
       chatFlavor: "Who shaped the stone, and the last significant thing to happen there, as a stone would remember it."
     }
   },
+  {
+    id: "deep-ear", name: "Deep Ear", rarity: "rare", tags: ["utility"],
+    effect: "1/short rest: a hand on a wall for 1 minute, and he sees and hears as if standing on the far side, up to 60 ft in, for up to 10 minutes.",
+    flavor: "Put your ear to the stone and the stone puts its ear to the room.",
+    item: {
+      activation: "minute", cost: 1, uses: { max: 1, per: "sr" }, range: { value: null, long: null, units: "touch" }, target: { value: 60, units: "ft", type: "space" },
+      duration: { value: 10, units: "minute" }, actionType: "util",
+      chatFlavor: "He sees and hears as if standing on the far side of the wall, up to 60 ft in, for up to 10 minutes."
+    }
+  },
+  {
+    id: "masonwork", name: "Masonwork", rarity: "rare", tags: ["utility"],
+    effect: "Over 10 minutes he reshapes his surface to pass as a different Medium or Large stone figure, a statue, or a rough-hewn humanoid of his size. It holds until he ends it or takes damage; Insight against it is contested by his Deception.",
+    flavor: "A statue is only a man who has stopped pretending otherwise.",
+    item: {
+      activation: "minute", cost: 10, range: selfRange, target: self, duration: { value: null, units: "spec" }, actionType: "util",
+      chatFlavor: "A different stone figure, a statue, or a rough-hewn humanoid of his size, until he ends it or takes damage. Insight against it is contested by his Deception."
+    }
+  },
 
   // ───────────────────────── Very rare ─────────────────────────
   {
@@ -432,5 +451,34 @@ export const BUILTIN_RUNES = [
       actionType: "heal", damage: [["@prof + @abilities.con.mod", "temphp"]],
       chatFlavor: "Temporary hit points; they don't stack with any he already has."
     }
+  },
+  {
+    id: "open-seam", name: "Open Seam", rarity: "veryRare", tags: ["utility"],
+    effect: "Action, 1/short rest: he parts nonmagical stone in front of him into a passage 5 ft wide, 8 ft high and up to 20 ft deep. It closes behind the last creature through, 1 minute after it opened.",
+    flavor: "Stone does not block. It waits to be asked properly.",
+    item: {
+      activation: "action", uses: { max: 1, per: "sr" }, range: { value: null, long: null, units: "touch" },
+      target: { value: 20, width: 5, units: "ft", type: "line" }, duration: { value: 1, units: "minute" }, actionType: "util",
+      chatFlavor: "A passage 5 ft wide, 8 ft high and up to 20 ft deep through nonmagical stone. It closes 1 minute after it opened, once the last creature is through."
+    }
+  },
+  {
+    id: "masons-hand", name: "Mason's Hand", rarity: "veryRare", tags: ["utility"],
+    effect: "Over 1 minute he reshapes up to a 5 ft cube of stone with his hands: a door, a bridge span, a cell, a likeness. Worked or natural stone, never a creature. No limit but time.",
+    flavor: "Everything he touches remembers being soft.",
+    item: {
+      activation: "minute", cost: 1, range: { value: null, long: null, units: "touch" }, target: { value: 5, units: "ft", type: "cube" }, actionType: "util",
+      chatFlavor: "Up to a 5 ft cube of worked or natural stone, reshaped by hand over a minute. Never a creature."
+    }
+  },
+  {
+    id: "hearth", name: "Hearth", rarity: "veryRare", tags: ["utility"],
+    effect: "Allies who finish a short rest within 10 ft of him regain the maximum from each Hit Die they spend, and are untroubled by cold or heat while they rest.",
+    flavor: "Fires go out. He does not."
+  },
+  {
+    id: "chips-of-the-core", name: "Chips of the Core", rarity: "veryRare", tags: ["utility"],
+    effect: "He can break up to eight chips from his stone. A creature holding one can speak with him and with the other holders at any distance on the same plane, in a voice only they hear. A chip goes dead if he dies or recalls it.",
+    flavor: "A piece of him is still him. It always was; that is how he was made."
   }
 ];

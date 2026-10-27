@@ -79,8 +79,9 @@ denies teleportation: Vault Door explicitly lets it through, so teleporting cast
 
 Runes tagged **utility** in the picker are the non-combat set, carved after classic magic items: Hollow (bag of
 holding), Lantern Heart (lantern of revealing, with a token light for Active Token Lighting), Makers' Tongue
-(comprehend languages), Riverbed, Stone Sleep, Pumice, Mole's Road (burrow speed by effect), Quiet Earth and Stone
-Tell, alongside Ley-Sight, Elven Protocol and Builder's Eye.
+(comprehend languages), Riverbed, Stone Sleep, Pumice, Mole's Road (burrow speed by effect), Quiet Earth, Stone
+Tell, Deep Ear, Masonwork, Open Seam (passwall), Mason's Hand (stone shape), Hearth and Chips of the Core (sending
+stones), alongside Ley-Sight, Elven Protocol and Builder's Eye.
 
 The picker and the bench carry a player-facing note that master rune-crafters may be able to aid the work,
 particularly with very rare runes. Mechanically the GM represents such help with **Add days** on the bench.

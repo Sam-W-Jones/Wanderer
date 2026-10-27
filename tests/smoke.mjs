@@ -234,9 +234,9 @@ const riderEffects = () => actor.effects.filter(e => e.getFlag("wanderer", "ride
 console.log("\nLibrary");
 const lib = api.runes.library();
 const count = r => lib.filter(x => x.rarity === r).length;
-check(lib.length === 49, `49 runes (${lib.length})`);
-check(count("uncommon") === 20 && count("rare") === 19 && count("veryRare") === 10, `20 / 19 / 10 by rarity (${count("uncommon")}/${count("rare")}/${count("veryRare")})`);
-check(lib.filter(r => r.tags?.includes("utility")).length === 12, `12 utility-tagged runes (${lib.filter(r => r.tags?.includes("utility")).length})`);
+check(lib.length === 55, `55 runes (${lib.length})`);
+check(count("uncommon") === 20 && count("rare") === 21 && count("veryRare") === 14, `20 / 21 / 14 by rarity (${count("uncommon")}/${count("rare")}/${count("veryRare")})`);
+check(lib.filter(r => r.tags?.includes("utility")).length === 18, `18 utility-tagged runes (${lib.filter(r => r.tags?.includes("utility")).length})`);
 check(!lib.some(r => ["return-of-mind", "recall", "deadweight"].includes(r.id)), "Return of Mind, Recall and Deadweight removed");
 check(lib.some(r => r.id === "bedrock") && lib.some(r => r.id === "mortar"), "Bedrock and Mortar added");
 check(!lib.some(r => /teleport(?!ation\b)/i.test(r.effect) && !/except by teleportation/i.test(r.effect)), "no rune denies teleportation");
@@ -247,8 +247,8 @@ check(api.items.id("overload") === api.items.id("overload"), "compendium ids det
 const builtAll = lib.map(r => api.items.build(r));
 check(builtAll.every(d => d._id && d.name && ["feat", "weapon"].includes(d.type) && d.system.description.value.length > 0), "every rune builds into feat or weapon item data");
 check(builtAll.filter(d => d.type === "weapon").length === 2, "Runic Fist and Wrecking Yard build as weapons");
-check(builtAll.filter(d => d.system.activation.type).length === 30, `30 runes are activatable (${builtAll.filter(d => d.system.activation.type).length})`);
-check(builtAll.filter(d => d.system.uses.max).length === 6, `6 runes have limited uses (${builtAll.filter(d => d.system.uses.max).length})`);
+check(builtAll.filter(d => d.system.activation.type).length === 34, `34 runes are activatable (${builtAll.filter(d => d.system.activation.type).length})`);
+check(builtAll.filter(d => d.system.uses.max).length === 8, `8 runes have limited uses (${builtAll.filter(d => d.system.uses.max).length})`);
 const burrow = builtAll.find(d => d.flags.wanderer.runeId === "moles-road");
 check(burrow.effects[0].changes[0].key === "system.attributes.movement.burrow" && burrow.effects[0].changes[0].value === "20", "Mole's Road grants a burrow speed by effect");
 const bedrock = builtAll.find(d => d.flags.wanderer.runeId === "bedrock");
@@ -449,7 +449,7 @@ const pd = await picker.getData();
 check(pd.groups.length === 3 && pd.groups[0].runes.every(r => r.packUuid?.startsWith("Compendium.wanderer.runes.Item.")), "picker rows link to the compendium");
 check(pd.groups[0].runes.find(r => r.id === "titans-grip")?.taken === true, "picker marks carved rune");
 const ld = await new api.apps.RuneLibraryEditor().getData();
-check(ld.groups.flatMap(g => g.runes).length === 49, "library editor lists all runes");
+check(ld.groups.flatMap(g => g.runes).length === 55, "library editor lists all runes");
 
 console.log(`\n${failures ? `${failures} FAILURE(S)` : "ALL CHECKS PASSED"}; warnings seen: ${warnings.length}; chat lines: ${chat.length}`);
 process.exit(failures ? 1 : 0);
