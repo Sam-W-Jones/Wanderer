@@ -113,7 +113,8 @@
       "noEssences": "No essences in the inventory.",
       "essenceDays": "{days} days",
       "instant": "instant",
-      "view": "View in the Wanderer Runes compendium"
+      "view": "View in the Wanderer Runes compendium",
+      "aidNote": "Master rune-crafters may be able to aid him in the work, particularly with very rare runes. It would be worth asking."
     },
     "Craft": {
       "replaceProject": "Abandon the current project ({name}) and lose its progress?",

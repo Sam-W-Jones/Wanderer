@@ -60,18 +60,30 @@ A carved rune is copied from the compendium onto the actor as a **Supernatural G
 Wrecking Yard are weapons), named `Rune: …`, with:
 
 - an **activation** (action, bonus, reaction or special) and the triggering condition in its activation text;
-- **limited uses** where the rune says so (Overload, Colossus 1/long rest; Shockwave, Pile Driver, Kinetic Lock
-  1/short rest). Unstable Core II spends Overload's use;
+- **limited uses** where the rune says so (Overload 1 and Colossus 2 per long rest; Shockwave 1, Pile Driver 2
+  and Kinetic Lock 2 per short rest). Unstable Core II spends Overload's use and, while carved, makes Overload
+  recharge on a short rest;
 - **saving throws** with the DC computed from the Wanderer (Overload: Dex save, DC 8 + PB + Con; pushes, pulls,
   trips and Shockwave: Strength save, DC 8 + PB + Str; Pile Driver: Con save, DC from Str), **damage** rolls
   (Overload 5d8 force, Slam 2d6, Hurl 1d6 per 10 ft, Vise = Str modifier, Rune-Burn 2d8 force, Pile Driver fall
   damage) and Rally Core's temporary hit points (PB + Con);
-- **passive Active Effects** applied while carved: Recall (+1 Int), Tremor Step (tremorsense 10 ft). Colossus
-  carries a 1-minute effect (Large, +1d4 melee damage, midi-qol advantage flags) that is offered on its chat card;
+- **passive Active Effects** applied while carved: Tremor Step (tremorsense 30 ft). Bedrock carries a toggle
+  effect (+2 AC, midi-qol no-crit flag) the player switches on while unmoved. Colossus carries a 1-minute effect
+  (Large, +1d4 melee damage, midi-qol advantage flags) and Stillness a raging effect (midi-qol Wisdom-save
+  advantage) that are offered on their chat cards;
 - an **attunement** effect that lowers the actor's attunement maximum by one, so three carved runes use the three
   attunement slots (setting *Carved runes use an attunement slot*).
 
-Runes with no mechanical hook (Rooted, Living Wall, Keystone, …) are passive features with their text.
+Runes with no mechanical hook (Rooted, Living Wall, Keystone, …) are passive features with their text. No rune
+denies teleportation: Vault Door explicitly lets it through, so teleporting casters keep their counter.
+
+Runes tagged **utility** in the picker are the non-combat set, carved after classic magic items: Hollow (bag of
+holding), Lantern Heart (lantern of revealing, with a token light for Active Token Lighting), Makers' Tongue
+(comprehend languages), Riverbed, Stone Sleep, Pumice, Mole's Road (burrow speed by effect), Quiet Earth, Stone
+Tell, Waygate and The Long Road, alongside Ley-Sight, Elven Protocol and Builder's Eye.
+
+The picker and the bench carry a player-facing note that master rune-crafters may be able to aid the work,
+particularly with very rare runes. Mechanically the GM represents such help with **Add days** on the bench.
 
 ### Disenchanting
 

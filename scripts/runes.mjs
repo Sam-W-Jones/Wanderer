@@ -8,6 +8,7 @@
  *   effect     rules text
  *   flavor     italic flavor line
  *   requires   (optional) id of a rune that must already be carved
+ *   tags       (optional) labels shown in the picker, e.g. ["utility"]
  *   effects    (optional) Active Effects on the created item. `transfer` defaults to true (a passive
  *              buff applied while carved); transfer: false effects are offered on the item's chat card.
  *   item       (optional) dnd5e mechanics for the created item. A rune without `item` is a passive
@@ -40,7 +41,7 @@ export const BUILTIN_RUNES = [
   },
   {
     id: "rooted", name: "Rooted", rarity: "uncommon",
-    effect: "Can't be knocked prone or moved against his will by creatures his size or smaller.",
+    effect: "Can't be knocked prone or moved against his will by creatures his size or smaller; counts as Huge for being lifted, carried, swallowed, or moved by wind and water.",
     flavor: "A mountain does not step aside. It was not asked, and it would not have understood the question."
   },
   {
@@ -54,14 +55,8 @@ export const BUILTIN_RUNES = [
     }
   },
   {
-    id: "recall", name: "Recall", rarity: "uncommon",
-    effect: "+1 Intelligence (max 20); he reads and speaks the old Elvish fully.",
-    flavor: "The rune does not add. It remembers. Somewhere under the scoring, the lessons were always there.",
-    effects: [{ name: "Recall", changes: [{ key: "system.abilities.int.value", mode: ADD, value: "1", priority: 20 }] }]
-  },
-  {
     id: "sure-footing", name: "Sure Footing", rarity: "uncommon",
-    effect: "Difficult terrain doesn't slow him; standing from prone costs 5 ft.",
+    effect: "Nonmagical difficult terrain doesn't slow him; standing from prone costs 5 ft.",
     flavor: "Rubble, ice, the dead, the dying — the ground is only ever the ground."
   },
   {
@@ -81,23 +76,18 @@ export const BUILTIN_RUNES = [
     item: { activation: "reaction", condition: "When a creature fails to grapple or shove him", target: one, actionType: "util" }
   },
   {
-    id: "deadweight", name: "Deadweight", rarity: "uncommon",
-    effect: "Counts as Huge for being lifted, carried, swallowed, or moved by wind and water.",
-    flavor: "Three things in this world will not be carried off: a debt, a grudge, and this."
-  },
-  {
     id: "tremor-step", name: "Tremor Step", rarity: "uncommon",
-    effect: "Tremorsense 10 ft; always knows which way is down, and how far.",
+    effect: "Tremorsense 30 ft; always knows which way is down, and how far.",
     flavor: "He hears the earth the way others hear a room — who is in it, who is coming, and where the floor ends.",
-    effects: [{ name: "Tremor Step", changes: [{ key: "system.attributes.senses.tremorsense", mode: UPGRADE, value: "10", priority: 20 }] }]
+    effects: [{ name: "Tremor Step", changes: [{ key: "system.attributes.senses.tremorsense", mode: UPGRADE, value: "30", priority: 20 }] }]
   },
   {
-    id: "ley-sight", name: "Ley-Sight", rarity: "uncommon",
+    id: "ley-sight", name: "Ley-Sight", rarity: "uncommon", tags: ["utility"],
     effect: "Sees magical auras within 30 ft as a faint cyan haze (passive detect magic).",
     flavor: "Light runs in the world like water in a wall. Most eyes were not made to see it leak."
   },
   {
-    id: "elven-protocol", name: "Elven Protocol", rarity: "uncommon",
+    id: "elven-protocol", name: "Elven Protocol", rarity: "uncommon", tags: ["utility"],
     effect: "Doors and locks of elven make open, close or hold at his word, unless warded against his kind.",
     flavor: "The old houses remember who built them. A knock in the right language is still a key."
   },
@@ -114,18 +104,63 @@ export const BUILTIN_RUNES = [
   },
   {
     id: "trip-line", name: "Trip Line", rarity: "uncommon",
-    effect: "Reaction when a creature leaves his reach: Strength check vs its Dex save; on a win it falls prone instead. Once per turn.",
+    effect: "Reaction when a creature leaves his reach: Strength check vs its Dex save; on a win it falls prone instead. Once per round.",
     flavor: "Leaving is a thing you do with your legs. He would like a word with your legs.",
     item: {
-      activation: "reaction", condition: "When a creature leaves his reach (once per turn)",
+      activation: "reaction", condition: "When a creature leaves his reach (once per round)",
       target: one, actionType: "abil", ability: "str",
       chatFlavor: "Contested: his Strength check against the target's Dexterity save. On a win it falls prone instead of leaving."
     }
   },
   {
-    id: "builders-eye", name: "Builder's Eye", rarity: "uncommon",
+    id: "builders-eye", name: "Builder's Eye", rarity: "uncommon", tags: ["utility"],
     effect: "Advantage to break, force or dismantle objects and structures; reads what a mechanism does at a glance.",
     flavor: "A wall is a list of places it will fail. He can read the list."
+  },
+  {
+    id: "hollow", name: "Hollow", rarity: "uncommon", tags: ["utility"],
+    effect: "A cavity behind the chest sigil opens on an extradimensional space (a 2 ft cube, up to 250 lb). Stowing or drawing an item is a bonus action; nothing inside can be detected from outside.",
+    flavor: "The makers left room. They always left room; they knew what a long road collects.",
+    item: { activation: "bonus", condition: "Stow or draw an item", range: selfRange, target: self, actionType: "util" }
+  },
+  {
+    id: "lantern-heart", name: "Lantern Heart", rarity: "uncommon", tags: ["utility"],
+    effect: "Bonus action: his core sheds bright light in a 30 ft radius and dim light for 30 ft beyond, or goes dark. Invisible creatures and objects in the bright light are visible.",
+    flavor: "Light was the first thing they put in him. It will be the last thing he puts out.",
+    item: { activation: "bonus", range: selfRange, target: self, duration: { value: null, units: "spec" }, actionType: "util" },
+    effects: [{
+      name: "Lantern Heart (lit)", transfer: false,
+      changes: [
+        { key: "ATL.light.bright", mode: OVERRIDE, value: "30", priority: 20 },
+        { key: "ATL.light.dim", mode: OVERRIDE, value: "60", priority: 20 },
+        { key: "ATL.light.color", mode: OVERRIDE, value: "#2d9bff", priority: 20 }
+      ]
+    }]
+  },
+  {
+    id: "makers-tongue", name: "Makers' Tongue", rarity: "uncommon", tags: ["utility"],
+    effect: "He understands any spoken language, and can read any writing by laying a hand on it.",
+    flavor: "Every tongue is a dialect of the one he was carved in. He simply listens for the accent."
+  },
+  {
+    id: "riverbed", name: "Riverbed", rarity: "uncommon", tags: ["utility"],
+    effect: "He walks along the bottom of any body of water at full speed, unhindered by current, and does not need to breathe.",
+    flavor: "Rivers are roads that happen to be wet. He has never understood the fuss."
+  },
+  {
+    id: "stone-sleep", name: "Stone Sleep", rarity: "uncommon", tags: ["utility"],
+    effect: "Action: while he stays motionless he is indistinguishable from a statue; a creature must succeed on an Intelligence (Investigation) check (DC 8 + PB + Con) to tell otherwise. He can keep it up for days, and wakes instantly.",
+    flavor: "He has been furniture before. He was good at it.",
+    item: {
+      activation: "action", range: selfRange, target: self, duration: { value: null, units: "spec" }, actionType: "util",
+      chatFlavor: "Indistinguishable from a statue while motionless. Intelligence (Investigation) DC 8 + his proficiency bonus + his Constitution modifier to tell otherwise."
+    }
+  },
+  {
+    id: "pumice", name: "Pumice", rarity: "uncommon", tags: ["utility"],
+    effect: "Bonus action: he weighs 10 pounds until he ends it as a bonus action. He takes no fall damage, floats, and can be lifted, carried or thrown by anyone who could manage a pack.",
+    flavor: "Heavy is a habit. He can put it down.",
+    item: { activation: "bonus", range: selfRange, target: self, duration: { value: null, units: "spec" }, actionType: "util" }
   },
 
   // ─────────────────────────── Rare ───────────────────────────
@@ -141,7 +176,7 @@ export const BUILTIN_RUNES = [
   },
   {
     id: "capacitor", name: "Capacitor", rarity: "rare",
-    effect: "Takes half the damage from spells and magical effects as charge (up to 20; full damage still taken); next melee hit deals the charge as force. Fades end of next turn.",
+    effect: "Stores half the damage he takes from spells and magical effects, after resistance, as charge (up to 20; full damage still taken); his next melee hit deals the charge as force. Fades end of next turn.",
     flavor: "Burn him and the fire goes somewhere. It goes into the fist. It comes back out.",
     item: {
       activation: "special", condition: "On his next melee hit after taking damage from a spell or magical effect",
@@ -168,9 +203,9 @@ export const BUILTIN_RUNES = [
   },
   {
     id: "colossus", name: "Colossus", rarity: "rare",
-    effect: "Bonus action, 1/LR, 1 min: Large, reach 10 ft, +1d4 melee damage, advantage on Strength checks and saves.",
+    effect: "Bonus action, 2/LR, 1 min: Large, reach 10 ft, +1d4 melee damage, advantage on Strength checks and saves.",
     flavor: "The makers built him to a size the doors would allow. The doors were a courtesy.",
-    item: { activation: "bonus", uses: { max: 1, per: "lr" }, duration: { value: 1, units: "minute" }, range: selfRange, target: self, actionType: "util" },
+    item: { activation: "bonus", uses: { max: 2, per: "lr" }, duration: { value: 1, units: "minute" }, range: selfRange, target: self, actionType: "util" },
     effects: [{
       name: "Colossus", transfer: false, duration: { rounds: 10 },
       changes: [
@@ -226,16 +261,16 @@ export const BUILTIN_RUNES = [
     }
   },
   {
-    id: "unmaking-hand", name: "Unmaking Hand", rarity: "rare",
+    id: "unmaking-hand", name: "Unmaking Hand", rarity: "uncommon",
     effect: "Melee hits deal double damage to objects and structures and ignore constructs' bludgeoning resistance.",
     flavor: "Whatever was made can be unmade, and the hand that knows how a thing was joined knows where it parts."
   },
   {
     id: "fastball", name: "Fastball", rarity: "rare",
-    effect: "Action: throw a willing Medium-or-smaller ally up to 30 ft; they land on their feet, may use their reaction for one weapon attack, no fall damage.",
+    effect: "In place of one attack of his Attack action: throw a willing Medium-or-smaller ally up to 30 ft; they land on their feet, may use their reaction for one weapon attack, no fall damage.",
     flavor: "Trust is a short flight and a hard landing. Ask the goblin.",
     item: {
-      activation: "action", range: ft(30), target: ally, actionType: "util",
+      activation: "special", condition: "Replaces one attack of his Attack action", range: ft(30), target: ally, actionType: "util",
       chatFlavor: "A willing Medium-or-smaller ally is thrown up to 30 ft, lands on their feet, takes no fall damage, and may use their reaction to make one weapon attack."
     }
   },
@@ -280,76 +315,137 @@ export const BUILTIN_RUNES = [
       chatFlavor: "Throws an object up to Large. A Huge creature hit is pushed 5 ft."
     }
   },
+  {
+    id: "moles-road", name: "Mole's Road", rarity: "rare", tags: ["utility"],
+    effect: "Burrowing speed 20 ft through earth, sand and loose rock. He leaves a tunnel behind him if he chooses, wide enough for a Medium creature.",
+    flavor: "The surface is a suggestion.",
+    effects: [{ name: "Mole's Road", changes: [{ key: "system.attributes.movement.burrow", mode: UPGRADE, value: "20", priority: 20 }] }]
+  },
+  {
+    id: "quiet-earth", name: "Quiet Earth", rarity: "rare", tags: ["utility"],
+    effect: "He can move in perfect silence, and while he does, allies within 10 ft of him make no sound either.",
+    flavor: "Stone knows how to be quiet. It has had practice."
+  },
+  {
+    id: "stone-tell", name: "Stone Tell", rarity: "rare", tags: ["utility"],
+    effect: "1/LR: lay a hand on worked stone for 10 minutes and ask it what it has seen. The DM describes who shaped it and the last significant thing to happen there, as a stone would remember it.",
+    flavor: "Walls do not gossip. They testify.",
+    item: {
+      activation: "minute", cost: 10, uses: { max: 1, per: "lr" }, range: { value: null, long: null, units: "touch" }, target: { value: 1, units: "", type: "object" }, actionType: "util",
+      chatFlavor: "Who shaped the stone, and the last significant thing to happen there, as a stone would remember it."
+    }
+  },
 
   // ───────────────────────── Very rare ─────────────────────────
   {
     id: "keystone", name: "Keystone", rarity: "veryRare",
-    effect: "A creature he's grappling has disadvantage on attacks against anyone but him; dragging it is free.",
+    effect: "A creature he's grappling is restrained while grappled (it can still try to escape) and has disadvantage on attacks against anyone but him.",
     flavor: "Pull one stone from the arch and the whole thing comes down. He is the stone, and he has your attention."
   },
   {
     id: "unstable-core-ii", name: "Unstable Core II", rarity: "veryRare",
-    effect: "Overload becomes 7d8, pushes 10 ft, and he chooses who it hits. Requires Overload.",
+    effect: "Overload deals 7d8, pushes 10 ft, and he chooses who it hits; it recharges on a short rest. While raging he can also set it off deliberately as a bonus action. Requires Overload.",
     flavor: "What was once a flaw in the carving is now a decision. That is the only difference between a fault and a weapon.",
     requires: "overload",
     item: {
-      activation: "special", condition: "The first time he drops below half his hit points (spends Overload's use)",
-      consumeOf: "overload", range: selfRange, target: burst(10),
+      activation: "bonus", condition: "Deliberately while raging, or automatically the first time he drops below half his hit points (spends Overload's use)",
+      consumeOf: "overload", targetUses: { per: "sr" }, range: selfRange, target: burst(10),
       actionType: "save", save: { ability: "dex", scaling: "con" }, damage: [["7d8", "force"]],
       chatFlavor: "Pushes 10 ft; he chooses who it hits. Half damage on a success."
     }
   },
   {
     id: "stillness", name: "Stillness", rarity: "veryRare",
-    effect: "Can rage as a reaction when an ally within 30 ft is hit; can hold rage without attacking.",
+    effect: "When an ally within 30 ft is hit, he can rage as a reaction and move up to his speed toward the attacker without provoking opportunity attacks. His rage never ends for not attacking, and while raging he has advantage on Wisdom saving throws.",
     flavor: "The old masters did not rage. They decided, and the deciding looked much the same from outside.",
     item: {
       activation: "reaction", condition: "When an ally within 30 ft is hit", range: ft(30), target: self, actionType: "util",
-      chatFlavor: "He enters rage as a reaction. He can hold rage without attacking."
-    }
+      chatFlavor: "He enters rage as a reaction and moves up to his speed toward the attacker without provoking opportunity attacks. While raging he has advantage on Wisdom saves."
+    },
+    effects: [{
+      name: "Stillness (raging)", transfer: false,
+      changes: [{ key: "flags.midi-qol.advantage.ability.save.wis", mode: OVERRIDE, value: "1", priority: 20 }]
+    }]
   },
   {
     id: "pile-driver", name: "Pile Driver", rarity: "veryRare",
-    effect: "Action, 1/short rest: leap 20 ft with a grappled creature and come down on it — both take fall damage (he takes half); it lands prone, stunned until end of its next turn on a failed Con save.",
+    effect: "Action, 2/short rest: leap 20 ft with a grappled creature and come down on it — 4d6 bludgeoning to it (he takes half); it lands prone, stunned until end of its next turn on a failed Con save. He lands on his feet.",
     flavor: "Up is a short trip. Down is a longer conversation.",
     item: {
-      activation: "action", uses: { max: 1, per: "sr" }, range: ft(20), target: one,
-      actionType: "save", save: { ability: "con", scaling: "str" }, damage: [["2d6", "bludgeoning"]],
-      chatFlavor: "Both take the fall damage (he takes half). The target lands prone, and is stunned until the end of its next turn on a failed Constitution save."
+      activation: "action", uses: { max: 2, per: "sr" }, range: ft(20), target: one,
+      actionType: "save", save: { ability: "con", scaling: "str" }, damage: [["4d6", "bludgeoning"]],
+      chatFlavor: "He takes half the damage and lands on his feet. The target lands prone, and is stunned until the end of its next turn on a failed Constitution save."
     }
   },
   {
     id: "vault-door", name: "Vault Door", rarity: "veryRare",
-    effect: "Action: brace in a gap up to 10 ft wide; nothing Huge or smaller passes by any means but teleportation until he moves or falls.",
+    effect: "Bonus action: brace in a gap up to 10 ft wide. While braced he can't be moved or knocked prone, allies behind him have total cover from the far side, nothing Huge or smaller passes except by teleportation, and he can still attack. Ends when he moves or falls.",
     flavor: "There are doors with locks and doors with guards. He is a third kind.",
     item: {
-      activation: "action", duration: { value: null, units: "spec" }, range: selfRange, target: { value: 10, units: "ft", type: "space" }, actionType: "util",
-      chatFlavor: "Braced in a gap up to 10 ft wide. Nothing Huge or smaller passes by any means but teleportation until he moves or falls."
+      activation: "bonus", duration: { value: null, units: "spec" }, range: selfRange, target: { value: 10, units: "ft", type: "space" }, actionType: "util",
+      chatFlavor: "Braced in a gap up to 10 ft wide: he can't be moved or knocked prone, allies behind him have total cover from the far side, and nothing Huge or smaller passes except by teleportation. He can still attack. Ends when he moves or falls."
     }
   },
   {
     id: "anvil", name: "Anvil", rarity: "veryRare",
-    effect: "Creatures he knocks prone can't stand until the end of their next turn; melee attacks against prone creatures crit on 19–20.",
+    effect: "Creatures he knocks prone can't stand until the end of their next turn; his melee attacks against prone creatures crit on 19–20.",
     flavor: "What is down stays down long enough to regret it."
   },
   {
     id: "kinetic-lock", name: "Kinetic Lock", rarity: "veryRare",
-    effect: "Reaction, 1/short rest: a creature within 30 ft starting to move must save or have speed 0 until end of its turn and be pulled 10 ft toward him.",
+    effect: "Reaction, 2/short rest: a creature within 30 ft starting to move must save or have speed 0 until the end of its next turn and be pulled 10 ft toward him.",
     flavor: "Motion is borrowed. He has decided it is time to collect.",
     item: {
-      activation: "reaction", condition: "When a creature within 30 ft starts to move", uses: { max: 1, per: "sr" },
+      activation: "reaction", condition: "When a creature within 30 ft starts to move", uses: { max: 2, per: "sr" },
       range: ft(30), target: one, actionType: "save", save: strSave,
-      chatFlavor: "On a failure its speed is 0 until the end of its turn and it is pulled 10 ft toward him."
+      chatFlavor: "On a failure its speed is 0 until the end of its next turn and it is pulled 10 ft toward him."
     }
   },
   {
     id: "rune-burn", name: "Rune-Burn", rarity: "veryRare",
-    effect: "Once per turn on a melee hit: until end of his next turn the target has disadvantage on attacks against others, and takes 2d8 force if it willingly moves away from him.",
+    effect: "Once per turn on a melee hit: until end of his next turn the target has disadvantage on attacks against others, can't take the Disengage action, and takes 3d8 force if it willingly moves away from him.",
     flavor: "The mark is not deep, but it is hot, and it points one way: at him.",
     item: {
       activation: "special", condition: "Once per turn, on a melee hit", target: one, duration: { value: 1, units: "round" },
-      actionType: "other", damage: [["2d8", "force"]],
-      chatFlavor: "Until the end of his next turn the target has disadvantage on attacks against others, and takes the force damage if it willingly moves away from him."
+      actionType: "other", damage: [["3d8", "force"]],
+      chatFlavor: "Until the end of his next turn the target has disadvantage on attacks against others, can't take the Disengage action, and takes the force damage if it willingly moves away from him."
     }
+  },
+  {
+    id: "bedrock", name: "Bedrock", rarity: "veryRare",
+    effect: "While he hasn't moved since the end of his last turn: +2 AC, attacks against him can't score critical hits, and he can't be moved or knocked prone against his will.",
+    flavor: "He is not standing on the ground. The ground is standing on him.",
+    effects: [{
+      name: "Bedrock (unmoved)", transfer: true, disabled: true,
+      changes: [
+        { key: "system.attributes.ac.bonus", mode: ADD, value: "+2", priority: 20 },
+        { key: "flags.midi-qol.grants.noCritical.all", mode: OVERRIDE, value: "1", priority: 20 }
+      ]
+    }]
+  },
+  {
+    id: "mortar", name: "Mortar", rarity: "veryRare",
+    effect: "While raging, at the start of each of his turns he gains temporary hit points equal to his proficiency bonus + Constitution modifier. They don't stack.",
+    flavor: "Cracks are not damage. Cracks are where the next stone goes.",
+    item: {
+      activation: "special", condition: "Start of each of his turns while raging", range: selfRange, target: self,
+      actionType: "heal", damage: [["@prof + @abilities.con.mod", "temphp"]],
+      chatFlavor: "Temporary hit points; they don't stack with any he already has."
+    }
+  },
+  {
+    id: "waygate", name: "Waygate", rarity: "veryRare", tags: ["utility"],
+    effect: "Over an hour he can inscribe a stone arch or doorway as his waystone (one at a time). Once every seven days, he and up to eight willing creatures can step through any arch of worked stone and arrive at the waystone.",
+    flavor: "Every door he has ever walked through is still a door. He has only to remember which.",
+    item: {
+      activation: "action", condition: "Once every seven days; inscribing a waystone takes an hour",
+      uses: { max: 1, per: "charges" }, target: { value: 9, units: "", type: "creature" }, range: { value: null, long: null, units: "touch" }, actionType: "util",
+      chatFlavor: "He and up to eight willing creatures step through an arch of worked stone and arrive at his waystone. Regains its use after seven days."
+    }
+  },
+  {
+    id: "the-long-road", name: "The Long Road", rarity: "veryRare", tags: ["utility"],
+    effect: "He and up to eight companions travelling with him move at a fast pace without penalty, suffer no exhaustion from forced marches or weather, and he always knows the way to any place he has been.",
+    flavor: "He has walked longer than most roads have existed. The roads are catching up."
   }
 ];

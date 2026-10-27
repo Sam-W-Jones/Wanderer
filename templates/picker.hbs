@@ -3,6 +3,7 @@
     <div class="target"><span class="muted">{{localize "WANDERER.Picker.target"}}</span> <strong>{{slotLabel}}</strong></div>
     <input type="search" class="search" placeholder="{{localize "WANDERER.Picker.search"}}" autocomplete="off">
   </header>
+  <p class="hint aid-note"><i class="fas fa-hands-helping"></i> {{localize "WANDERER.Picker.aidNote"}}</p>
   <nav class="tabs" data-group="primary">
     {{#each groups}}
     <a class="item" data-tab="{{key}}"><span class="dot rarity-{{key}}"></span>{{label}} <span class="count">{{runes.length}}</span></a>
@@ -18,7 +19,7 @@
            data-rune-id="{{id}}" data-search="{{search}}">
         <img class="rune-icon" src="{{img}}" alt="" draggable="false">
         <div class="rune-text">
-          <div class="rune-name">{{name}}{{#if requiresName}} <span class="req"><i class="fas fa-link"></i> {{localize "WANDERER.Picker.requires" name=requiresName}}</span>{{/if}}</div>
+          <div class="rune-name">{{name}}{{#each tags}} <span class="tag">{{this}}</span>{{/each}}{{#if requiresName}} <span class="req"><i class="fas fa-link"></i> {{localize "WANDERER.Picker.requires" name=requiresName}}</span>{{/if}}</div>
           <div class="rune-effect">{{effect}}</div>
           {{#if flavor}}<div class="rune-flavor">{{flavor}}</div>{{/if}}
         </div>

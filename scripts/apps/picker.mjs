@@ -100,6 +100,7 @@ export class RunePicker extends Application {
       problem: problem ?? "",
       available: !problem,
       requiresName: req?.name ?? "",
+      tags: Array.isArray(rune.tags) ? rune.tags : [],
       packUuid: ["builtin", "override"].includes(rune.source) ? runePackUuid(rune.id) : null,
       search: `${rune.name} ${rune.effect ?? ""} ${rune.flavor ?? ""}`.toLowerCase()
     };

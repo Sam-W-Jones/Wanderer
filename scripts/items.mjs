@@ -137,7 +137,7 @@ export function buildRuneItemData(rune, { attunement = { attunement: 2 }, consum
     name: e.name ?? rune.name,
     icon: img,
     transfer: e.transfer ?? true,
-    disabled: false,
+    disabled: e.disabled ?? false,
     duration: clone(e.duration ?? {}),
     changes: clone(e.changes ?? []),
     flags: {}
@@ -170,6 +170,7 @@ export function buildRuneItemData(rune, { attunement = { attunement: 2 }, consum
         flavor: rune.flavor ?? "",
         requires: rune.requires ?? null,
         consumeOf: m.consumeOf ?? null,
+        targetUses: m.targetUses ? clone(m.targetUses) : null,
         sourceName: rune.name
       }
     }

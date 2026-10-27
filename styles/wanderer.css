@@ -783,6 +783,18 @@
   margin: 2px 0 8px;
 }
 
+.wanderer-app .aid-note {
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--wd-blue-soft);
+  opacity: 0.85;
+}
+
+.wanderer-picker .aid-note {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
 .wanderer-app .rune-row {
   display: flex;
   gap: 10px;

@@ -234,9 +234,12 @@ const riderEffects = () => actor.effects.filter(e => e.getFlag("wanderer", "ride
 console.log("\nLibrary");
 const lib = api.runes.library();
 const count = r => lib.filter(x => x.rarity === r).length;
-check(lib.length === 40, `40 runes (${lib.length})`);
-check(count("uncommon") === 15 && count("rare") === 17 && count("veryRare") === 8, `15 / 17 / 8 by rarity (${count("uncommon")}/${count("rare")}/${count("veryRare")})`);
-check(!lib.some(r => r.id === "return-of-mind"), "Return of Mind removed (overlaps the core)");
+check(lib.length === 51, `51 runes (${lib.length})`);
+check(count("uncommon") === 20 && count("rare") === 19 && count("veryRare") === 12, `20 / 19 / 12 by rarity (${count("uncommon")}/${count("rare")}/${count("veryRare")})`);
+check(lib.filter(r => r.tags?.includes("utility")).length === 14, `14 utility-tagged runes (${lib.filter(r => r.tags?.includes("utility")).length})`);
+check(!lib.some(r => ["return-of-mind", "recall", "deadweight"].includes(r.id)), "Return of Mind, Recall and Deadweight removed");
+check(lib.some(r => r.id === "bedrock") && lib.some(r => r.id === "mortar"), "Bedrock and Mortar added");
+check(!lib.some(r => /teleport(?!ation\b)/i.test(r.effect) && !/except by teleportation/i.test(r.effect)), "no rune denies teleportation");
 check(new Set(lib.map(r => r.id)).size === lib.length, "rune ids unique");
 const ids = lib.map(r => api.items.id(r.id));
 check(ids.every(id => /^[A-Za-z0-9]{16}$/.test(id)) && new Set(ids).size === ids.length, "compendium ids are 16-char and unique");
@@ -244,8 +247,12 @@ check(api.items.id("overload") === api.items.id("overload"), "compendium ids det
 const builtAll = lib.map(r => api.items.build(r));
 check(builtAll.every(d => d._id && d.name && ["feat", "weapon"].includes(d.type) && d.system.description.value.length > 0), "every rune builds into feat or weapon item data");
 check(builtAll.filter(d => d.type === "weapon").length === 2, "Runic Fist and Wrecking Yard build as weapons");
-check(builtAll.filter(d => d.system.activation.type).length === 24, `24 runes are activatable (${builtAll.filter(d => d.system.activation.type).length})`);
-check(builtAll.filter(d => d.system.uses.max).length === 5, `5 runes have limited uses (${builtAll.filter(d => d.system.uses.max).length})`);
+check(builtAll.filter(d => d.system.activation.type).length === 31, `31 runes are activatable (${builtAll.filter(d => d.system.activation.type).length})`);
+check(builtAll.filter(d => d.system.uses.max).length === 7, `7 runes have limited uses (${builtAll.filter(d => d.system.uses.max).length})`);
+const burrow = builtAll.find(d => d.flags.wanderer.runeId === "moles-road");
+check(burrow.effects[0].changes[0].key === "system.attributes.movement.burrow" && burrow.effects[0].changes[0].value === "20", "Mole's Road grants a burrow speed by effect");
+const bedrock = builtAll.find(d => d.flags.wanderer.runeId === "bedrock");
+check(bedrock.effects.length === 2 && bedrock.effects[0].disabled === true && bedrock.effects[0].transfer === true && bedrock.effects[1].flags.wanderer.attunement, "Bedrock ships a disabled toggle effect plus the attunement effect");
 check(builtAll.every(d => d.type === "weapon" || d.effects.some(e => e.flags?.wanderer?.attunement)), "feature runes carry the attunement effect");
 const customId = await api.runes.save({ name: "Test Rune", rarity: "rare", effect: "Does a thing." });
 check(customId === "test-rune", `custom rune id slugified (${customId})`);
@@ -313,16 +320,18 @@ await api.crafting.finishNow(actor);
 const uc2 = slotItems().node2;
 check(uc2?.flags?.wanderer?.runeId === "unstable-core-ii" && !actor.items.find(i => i.getFlag("wanderer", "runeId") === "runic-fist"), "finished project replaces the occupant; the old rune is gone");
 check(uc2?.system?.consume?.type === "charges" && uc2.system.consume.target === overload.id, "Unstable Core II consumes Overload's charge");
+check(uc2?.system?.activation?.type === "bonus" && overload.system.uses.per === "sr", "Unstable Core II is a bonus action and makes Overload recharge on a short rest");
 
-// Recall: stat + attunement effects
-await api.crafting.beginProject(actor, { slot: "node2", kind: "rune", runeId: "recall" });
+// Tremor Step: sense effect + attunement effect (replacing Unstable Core II restores Overload's recovery)
+await api.crafting.beginProject(actor, { slot: "node2", kind: "rune", runeId: "tremor-step" });
 await api.crafting.finishNow(actor);
-const recall = slotItems().node2;
-check(recall?.effects?.length === 2 && recall.effects[0].changes[0].key === "system.abilities.int.value" && recall.effects.every(e => e.transfer === true), "Recall carries its stat effect and the attunement effect");
+const tremor = slotItems().node2;
+check(tremor?.effects?.length === 2 && tremor.effects[0].changes[0].value === "30" && tremor.effects.every(e => e.transfer === true), "Tremor Step carries its 30 ft sense effect and the attunement effect");
+check(overload.system.uses.per === "lr", "prying out Unstable Core II restores Overload to long-rest recovery");
 
 // Attunement setting off → no attunement effect
 await game.settings.set("wanderer", "runesConsumeAttunement", false);
-await api.crafting.beginProject(actor, { slot: "node2", kind: "rune", runeId: "tremor-step" });
+await api.crafting.beginProject(actor, { slot: "node2", kind: "rune", runeId: "bedrock" });
 await api.crafting.finishNow(actor);
 check(slotItems().node2?.effects?.length === 1 && !slotItems().node2.effects.some(e => e.flags?.wanderer?.attunement), "attunement effect omitted when the setting is off");
 await game.settings.set("wanderer", "runesConsumeAttunement", true);
@@ -440,7 +449,7 @@ const pd = await picker.getData();
 check(pd.groups.length === 3 && pd.groups[0].runes.every(r => r.packUuid?.startsWith("Compendium.wanderer.runes.Item.")), "picker rows link to the compendium");
 check(pd.groups[0].runes.find(r => r.id === "titans-grip")?.taken === true, "picker marks carved rune");
 const ld = await new api.apps.RuneLibraryEditor().getData();
-check(ld.groups.flatMap(g => g.runes).length === 40, "library editor lists all runes");
+check(ld.groups.flatMap(g => g.runes).length === 51, "library editor lists all runes");
 
 console.log(`\n${failures ? `${failures} FAILURE(S)` : "ALL CHECKS PASSED"}; warnings seen: ${warnings.length}; chat lines: ${chat.length}`);
 process.exit(failures ? 1 : 0);

@@ -3,8 +3,16 @@
 ## 0.1.0
 
 - Torso overlay with a GM-only core slot and three craftable nodes, drawn over the concept sheet.
-- Rune library: the Uncommon, Rare and Very rare runes from the tables (Return of Mind dropped: it overlaps the
-  Core of the Wanderer), with a GM editor for custom runes, overrides and disabling.
+- Rune library: the Uncommon, Rare and Very rare runes from the tables, with a GM editor for custom runes,
+  overrides and disabling. Balance pass: Return of Mind and Recall dropped (the Core covers them), Deadweight
+  folded into Rooted, Tremor Step 30 ft, Trip Line once per round, Unmaking Hand to uncommon, Fastball replaces
+  one attack, Colossus 2/long rest; Very rares strengthened (Keystone restrains, Unstable Core II is a bonus
+  action with short-rest recovery, Stillness moves and guards Wisdom saves, Pile Driver 4d6 and 2/short rest,
+  Vault Door a bonus action that can't be moved and gives cover, Kinetic Lock 2/short rest, Rune-Burn 3d8 and no
+  Disengage) and Bedrock and Mortar added. Nothing denies teleportation.
+- Utility runes: Hollow, Lantern Heart, Makers' Tongue, Riverbed, Stone Sleep, Pumice (uncommon); Mole's Road,
+  Quiet Earth, Stone Tell (rare); Waygate, The Long Road (very rare). Runes carry tags shown in the picker.
+- Player-facing note on the picker and bench: master rune-crafters may aid the work, especially on very rares.
 - **Wanderer Runes compendium**: every rune as a ready-to-use dnd5e item (Supernatural Gift feature or weapon)
   with activation, limited uses, saves, damage, temporary hit points and passive Active Effects; carving copies
   the compendium item onto the sheet. Unstable Core II spends Overload's use. Carved runes lower the attunement

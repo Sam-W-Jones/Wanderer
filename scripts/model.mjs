@@ -1,6 +1,7 @@
 import { MODULE_ID, SLOT_IDS, ICONS } from "./constants.mjs";
 import { attunedData, unattunedData, requiresAttunement, itemRarity, isMagicItem, isPhysical } from "./dnd5e.mjs";
 import { slotLabel } from "./settings.mjs";
+import { getRune } from "./library.mjs";
 import { L, postChat, escapeHTML } from "./utils.mjs";
 import { riderOf, stripRiderBonus, ARMOR_TYPES, armorTypeOf, requestRiderSync } from "./riders.mjs";
 
@@ -144,7 +145,18 @@ export async function wireConsumption(actor, item) {
   }
   if (!target || target.id === item.id) return null;
   await item.update({ "system.consume": { type: "charges", target: target.id, amount: 1, scale: false } });
+  // Some runes change how the feature they spend recovers (Unstable Core II: Overload recharges on a short rest).
+  if (f.targetUses?.per) await target.update({ "system.uses.per": f.targetUses.per });
   return target;
+}
+
+/** Undo wireConsumption's change to the spent feature's recovery when the spending item leaves its slot. */
+export async function unwireConsumption(actor, item) {
+  const f = slotFlags(item);
+  if (!f.consumeOf || !f.targetUses?.per) return;
+  const target = actor.items.find(i => i.getFlag(MODULE_ID, "slot") && i.getFlag(MODULE_ID, "runeId") === f.consumeOf);
+  const original = getRune(f.consumeOf)?.item?.uses?.per;
+  if (target && original) await target.update({ "system.uses.per": original });
 }
 
 /**
@@ -197,6 +209,7 @@ export async function removeFromSlot(actor, slot, { announce = true } = {}) {
   const name = f.sourceName || item.name;
 
   if (f.kind === "rune") {
+    await unwireConsumption(actor, item);
     await item.delete();
   } else if (f.kind === "essence") {
     await actor.createEmbeddedDocuments("Item", [essenceFromSlotted(item)]);
