@@ -1,5 +1,5 @@
 import { MODULE_ID, SECONDS_PER_DAY, NODE_IDS, SLOT_ICONS } from "./constants.mjs";
-import { getDaysFor, essencesInstant, slotLabel, runesConsumeAttunement } from "./settings.mjs";
+import { getDaysFor, essenceDays, disenchantMinutes, slotLabel, runesConsumeAttunement } from "./settings.mjs";
 import { getRune, runeIcon } from "./library.mjs";
 import { attunedData, itemRarity, hasActivities, itemShape, stripMigrationFlags } from "./dnd5e.mjs";
 import { buildRuneItemData, runeItemId, PACK_ID } from "./items.mjs";
@@ -122,10 +122,22 @@ export function runeFromItem(item) {
  * Start a project. `force` skips the "abandon current project?" prompt.
  * `sourceUuid` carves a copy of that Item (a rune item from a compendium or the world).
  * Returns the project, or null if cancelled.
+ *
+ * Disenchanting an essence into a node is a matter of minutes, not days of work, so it never becomes a
+ * project: the essence is set at once and whatever is on the bench is left alone. Only tables that
+ * opted into crafting days for essences queue it like a rune.
  */
 export async function beginProject(actor, { slot, kind, runeId = null, essenceId = null, sourceUuid = null }, { force = false } = {}) {
   if (!actor.isOwner) return void ui.notifications.warn(L("WANDERER.Craft.notOwner"));
   if (!NODE_IDS.includes(slot)) return null;
+
+  let essence = null;
+  if (kind !== "rune") {
+    essence = actor.items.get(essenceId);
+    const e = essence?.getFlag(MODULE_ID, "essence");
+    if (!e) return void ui.notifications.warn(L("WANDERER.Craft.sourceMissing", { name: essenceId }));
+    if (essenceDays(e.rarity || "uncommon") <= 0) return setEssenceNow(actor, slot, essence, { force });
+  }
 
   const current = getProject(actor);
   if (current && !force) {
@@ -147,13 +159,11 @@ export async function beginProject(actor, { slot, kind, runeId = null, essenceId
       daysRequired: getDaysFor(rune.rarity)
     };
   } else {
-    const ess = actor.items.get(essenceId);
-    const e = ess?.getFlag(MODULE_ID, "essence");
-    if (!e) return void ui.notifications.warn(L("WANDERER.Craft.sourceMissing", { name: essenceId }));
+    const e = essence.getFlag(MODULE_ID, "essence");
     project = {
-      slot, kind: "essence", runeId: null, essenceId: ess.id, sourceUuid: null,
-      name: e.sourceName || ess.name, img: e.sourceImg || ess.img, rarity: e.rarity || "uncommon",
-      daysRequired: essencesInstant() ? 0 : getDaysFor(e.rarity || "uncommon")
+      slot, kind: "essence", runeId: null, essenceId: essence.id, sourceUuid: null,
+      name: e.sourceName || essence.name, img: e.sourceImg || essence.img, rarity: e.rarity || "uncommon",
+      daysRequired: essenceDays(e.rarity || "uncommon")
     };
   }
 
@@ -324,6 +334,45 @@ async function installProjectNow(actor) {
   requestRiderSync(actor);
   await postChat(actor, escapeHTML(L("WANDERER.Chat.installed", { name: project.name, slot: slotLabel(project.slot) })));
   return true;
+}
+
+/**
+ * Set an essence into a node at once: disenchanting takes minutes, not days of work. The bench is not
+ * involved, so a carving in progress carries on untouched; only a queued project that was waiting on this
+ * very essence is dropped. Returns a finished project-shaped record, or null if cancelled.
+ */
+async function setEssenceNow(actor, slot, essence, { force = false } = {}) {
+  const e = essence.getFlag(MODULE_ID, "essence") ?? {};
+  const name = e.sourceName || essence.name;
+  const occupant = getSlotItems(actor)[slot];
+  if (occupant && !force) {
+    const ok = await confirm(slotLabel(slot), escapeHTML(L("WANDERER.Craft.occupiedNow", { slot: slotLabel(slot), name: occupant.name })));
+    if (!ok) return null;
+  }
+
+  if (installing.has(actor.id)) return null;
+  installing.add(actor.id);
+  try {
+    if (!actor.items.get(essence.id)) return void ui.notifications.warn(L("WANDERER.Craft.sourceMissing", { name }));
+    const data = buildSlottedEssenceData(essence, slot);
+    await removeFromSlot(actor, slot, { announce: false });
+    const [created] = await actor.createEmbeddedDocuments("Item", [data]);
+    await essence.delete();
+    if (created) await wireConsumption(actor, created);
+    if (getProject(actor)?.essenceId === essence.id) await actor.unsetFlag(MODULE_ID, "project");
+  } finally {
+    installing.delete(actor.id);
+  }
+
+  requestRiderSync(actor);
+  const minutes = disenchantMinutes();
+  const key = minutes > 0 ? "WANDERER.Chat.essenceSet" : "WANDERER.Chat.installed";
+  await postChat(actor, escapeHTML(L(key, { actor: actor.name, name, slot: slotLabel(slot), minutes })));
+  return {
+    slot, kind: "essence", runeId: null, essenceId: essence.id, sourceUuid: null,
+    name, img: e.sourceImg || essence.img, rarity: e.rarity || "uncommon",
+    daysRequired: 0, daysDone: 0, complete: true, minutes
+  };
 }
 
 export async function abandonProject(actor, { ask = true } = {}) {

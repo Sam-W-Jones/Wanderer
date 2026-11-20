@@ -1,5 +1,5 @@
 import { MODULE_ID, TEMPLATES, SLOT_IDS, NODE_IDS } from "../constants.mjs";
-import { getLayout, getImage, essencesInstant, slotLabel, getDaysFor } from "../settings.mjs";
+import { getLayout, getImage, essenceTime, essenceHint, slotLabel } from "../settings.mjs";
 import {
   getSlotItems, getEssences, disenchantables, slotFlags,
   installItemDocument, removeFromSlot, disenchantItem
@@ -128,11 +128,12 @@ export class WandererCoreApp extends Application {
     const essences = getEssences(actor).map(e => {
       const f = e.getFlag(MODULE_ID, "essence") ?? {};
       const rarity = f.rarity || itemRarity(e);
+      const time = essenceTime(rarity || "uncommon");
       return {
         id: e.id, name: f.sourceName || e.name, img: f.sourceImg || e.img,
         rarity, rarityLabel: rarityLabel(rarity),
         rider: f.rider ?? null, riderLabel: riderLabel(f.rider),
-        days: essencesInstant() ? 0 : getDaysFor(rarity)
+        days: time.days, minutes: time.minutes, timeLabel: time.label
       };
     });
 
@@ -159,7 +160,7 @@ export class WandererCoreApp extends Application {
       project: { ...status, rarityLabel: rarityLabel(status.rarity), daysLeft: Math.max(0, (status.total ?? 0) - (status.done ?? 0)) },
       essences,
       riders,
-      essenceInstant: essencesInstant(),
+      essenceHint: essenceHint(),
       magicCount: disenchantables(actor).length,
       worldDay: currentWorldDay()
     };
@@ -317,7 +318,7 @@ export class WandererCoreApp extends Application {
       return this.render(false);
     }
 
-    // A node: essences queue for crafting; magic items are disenchanted first.
+    // A node: an essence is set into it; a magic item is disenchanted first.
     const ownItem = item.parent === actor;
     if (ownItem && item.getFlag(MODULE_ID, "essence")) {
       await beginProject(actor, { slot, kind: "essence", essenceId: item.id });
@@ -343,9 +344,12 @@ export class WandererCoreApp extends Application {
     }
 
     if (ownItem && isPhysical(item) && isMagicItem(item)) {
+      // Minutes by default (set at once); days of work only when essences take crafting days.
+      const time = essenceTime(itemRarity(item) || "uncommon");
+      const key = time.days > 0 ? "WANDERER.Drop.disenchantConfirm" : "WANDERER.Drop.disenchantConfirmNow";
       const ok = await Dialog.confirm({
         title: L("WANDERER.Disenchant.title"),
-        content: `<p>${escapeHTML(L("WANDERER.Drop.disenchantConfirm", { name: item.name, slot: slotLabel(slot) }))}</p>`,
+        content: `<p>${escapeHTML(L(key, { name: item.name, slot: slotLabel(slot), time: time.label }))}</p>`,
         defaultYes: false
       });
       if (!ok) return;

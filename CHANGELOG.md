@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 (2026-11-20)
+
+- **Disenchanting takes 30 minutes.** Setting an essence into a node is no longer a project of 10 to 250 days:
+  the essence is set at once, and the bench, the essence list, the confirmation and the chat line state the time
+  (a new *Disenchanting time* setting, default 30 minutes). It does not use the once-per-day work allowance.
+- Disenchanting no longer touches the bench. Slotting an essence used to replace, and discard, whatever was being
+  carved; a carving in progress now carries on untouched, and only a queued project for that same essence is
+  dropped.
+- The *Essences slot instantly* setting is replaced by *Essences take crafting days* (off by default), which
+  restores the slower pace: an essence is queued as a project with the crafting days of its rarity.
+- Replacing an occupied node with an essence now says plainly that the occupant is replaced at once.
+
 ## 0.2.1 (2026-10-27)
 
 - Every rune and the Core of the Wanderer declare the 2014 rules in their source, so dnd5e 4.x no longer tags

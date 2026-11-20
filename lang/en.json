@@ -47,6 +47,7 @@
       "magicCount": "{count} magic item(s) could be disenchanted",
       "instantEssence": "Essences slot instantly.",
       "timedEssence": "Essences take the crafting time of their rarity.",
+      "minutesEssence": "Disenchanting an item into a node takes {minutes} minutes. It is not a day of work and does not interrupt a carving.",
       "dragHint": "Drag onto a node",
       "worldDay": "World day {day}",
       "rider": {
@@ -120,6 +121,8 @@
       "slot": "Slot",
       "noEssences": "No essences in the inventory.",
       "essenceDays": "{days} days",
+      "minutes": "{minutes} minutes",
+      "minutesShort": "{minutes} min",
       "instant": "instant",
       "view": "View in the Wanderer Runes compendium",
       "aidNote": "Master rune-crafters may be able to aid him in the work, particularly with very rare runes. It would be worth asking."
@@ -127,6 +130,7 @@
     "Craft": {
       "replaceProject": "Abandon the current project ({name}) and lose its progress?",
       "occupiedAtStart": "{slot} holds {name}. It stays in place and keeps working until the new carving is finished, then it is replaced. Continue?",
+      "occupiedNow": "{slot} holds {name}. Setting the essence replaces it now: a rune is lost, an essence returns to the inventory. Continue?",
       "alreadyWorked": "The Wanderer has already worked today.",
       "noProject": "There is no active project.",
       "abandonConfirm": "Abandon {name}? All progress is lost.",
@@ -144,6 +148,7 @@
     "Chat": {
       "worked": "{actor} works on {name} ({done}/{total} days).",
       "installed": "{name} is set into {slot}.",
+      "essenceSet": "{actor} spends {minutes} minutes setting {name} into {slot}.",
       "disenchanted": "{actor} breaks down {item} and draws out its essence.",
       "coreSet": "{name} is seated in the Wanderer's core.",
       "removed": "{name} is pried out of {slot}."
@@ -152,10 +157,11 @@
       "coreGmOnly": "Only the GM can place something in the core.",
       "setCore": "Seat {name} in the core?",
       "gmNodeTitle": "{name} → {slot}",
-      "gmNodeContent": "Install it directly, bypassing crafting, or disenchant it into an essence and begin crafting?",
+      "gmNodeContent": "Install it directly as it is, or disenchant it and set its essence into the node?",
       "install": "Install directly",
-      "craft": "Disenchant & craft",
+      "craft": "Disenchant & slot",
       "disenchantConfirm": "Disenchant {name}? The item is destroyed, its essence is harvested, and crafting into {slot} begins.",
+      "disenchantConfirmNow": "Disenchant {name}? The item is destroyed and its essence is set into {slot} ({time}).",
       "notAllowed": "Only essences or magic items from the Wanderer's own inventory can be dropped on a node.",
       "runeOnCore": "Runes cannot be carved into the core."
     },
@@ -187,12 +193,13 @@
       "empty": "empty"
     },
     "Settings": {
-      "daysCommon": { "name": "Crafting days: Common", "hint": "Days of work to craft a common rune or essence." },
-      "daysUncommon": { "name": "Crafting days: Uncommon", "hint": "Days of work to craft an uncommon rune or essence (DMG: 10)." },
-      "daysRare": { "name": "Crafting days: Rare", "hint": "Days of work to craft a rare rune or essence (DMG: 50)." },
-      "daysVeryRare": { "name": "Crafting days: Very rare", "hint": "Days of work to craft a very rare rune or essence (DMG: 125)." },
-      "daysLegendary": { "name": "Crafting days: Legendary", "hint": "Days of work to slot a legendary essence (DMG: 250)." },
-      "essenceInstant": { "name": "Essences slot instantly", "hint": "If enabled, slotting a disenchanted essence takes no crafting time. Otherwise it takes the crafting days of its rarity." },
+      "daysCommon": { "name": "Crafting days: Common", "hint": "Days of work to carve a common rune." },
+      "daysUncommon": { "name": "Crafting days: Uncommon", "hint": "Days of work to carve an uncommon rune (DMG: 10)." },
+      "daysRare": { "name": "Crafting days: Rare", "hint": "Days of work to carve a rare rune (DMG: 50)." },
+      "daysVeryRare": { "name": "Crafting days: Very rare", "hint": "Days of work to carve a very rare rune (DMG: 125)." },
+      "daysLegendary": { "name": "Crafting days: Legendary", "hint": "Days of work for a legendary essence, when essences take crafting days (DMG: 250)." },
+      "disenchantMinutes": { "name": "Disenchanting time (minutes)", "hint": "Minutes it takes to disenchant an item and set its essence into a node. This is far less than a day of work, so the essence is set at once; the time is stated on the bench and in chat for the table to track. Set to 0 to state no time." },
+      "essenceCraftingDays": { "name": "Essences take crafting days", "hint": "If enabled, setting an essence into a node is queued as a project that takes the crafting days of its rarity, like carving a rune, instead of the disenchanting minutes." },
       "runesConsumeAttunement": { "name": "Carved runes use an attunement slot", "hint": "Each carved rune feature lowers the actor's attunement maximum by one, so the three nodes behave like attuned items. Weapon runes and slotted essences are attuned items in their own right." },
       "chatMessages": { "name": "Post crafting messages to chat", "hint": "Announce work days, completed carvings and disenchanting in the chat log." },
       "sheetImage": { "name": "Core image", "hint": "The image shown behind the slots. The default is the Wanderer concept sheet; use the Layout menu to frame it." },

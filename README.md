@@ -104,9 +104,14 @@ Essences can then be slotted into a node:
 
 - press **Slot…** next to the essence and choose a node, drag the essence onto a node, or use the Essences tab of
   the rune picker;
-- or drag a magic item straight from the inventory onto a node, which disenchants it and starts the project.
+- or drag a magic item straight from the inventory onto a node, which disenchants it and sets its essence into
+  that node.
 
-Slotting an essence takes the crafting time of its rarity unless the **Essences slot instantly** setting is on.
+Disenchanting an item into a node takes **30 minutes** (the **Disenchanting time** setting). That is far less than
+a day of work, so the essence is set at once and the time is stated on the bench and in chat for the table to
+track. It does not use the once-per-day work allowance, and a carving in progress stays on the bench untouched.
+Tables that prefer a slower pace can turn on **Essences take crafting days**, which queues an essence as a
+project with the crafting days of its rarity, like a rune.
 The installed item is the original item as-is (effects, uses, description), renamed `Node: …`, attuned, and
 equipped (armor is attuned but not worn: the Wanderer's AC is his own). Removing an essence from a node returns
 it to the inventory with its original data.
@@ -200,7 +205,8 @@ ELECTRON_RUN_AS_NODE=1 "C:\Program Files\Foundry10\Foundry Virtual Tabletop\Foun
 | Setting | Default | Notes |
 | --- | --- | --- |
 | Crafting days: Common / Uncommon / Rare / Very rare / Legendary | 5 / 10 / 50 / 125 / 250 | DMG crafting times in days of work. |
-| Essences slot instantly | off | Skip crafting time for disenchanted essences. |
+| Disenchanting time (minutes) | 30 | Time to disenchant an item into a node. Far less than a day, so the essence is set at once and the time is stated for the table. |
+| Essences take crafting days | off | Queue essences as projects with the crafting days of their rarity instead. |
 | Carved runes use an attunement slot | on | Each carved rune feature lowers the attunement maximum by one. |
 | Post crafting messages to chat | on | Work days, installs and disenchants go to the chat log. |
 | Core image | the concept sheet | Any image; frame it with the Layout menu. |

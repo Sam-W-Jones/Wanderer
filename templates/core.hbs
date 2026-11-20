@@ -146,7 +146,7 @@
           <img src="{{img}}" alt="" draggable="false">
           <div class="essence-text">
             <div class="essence-name">{{name}}</div>
-            <div class="sub">{{rarityLabel}} · {{#if days}}{{localize "WANDERER.Picker.essenceDays" days=days}}{{else}}{{localize "WANDERER.Picker.instant"}}{{/if}}{{#if riderLabel}} · {{riderLabel}}{{/if}}</div>
+            <div class="sub">{{rarityLabel}} · {{timeLabel}}{{#if riderLabel}} · {{riderLabel}}{{/if}}</div>
           </div>
           {{#if @root.isOwner}}
           <button type="button" data-action="slot-essence" data-item-id="{{id}}"><i class="fas fa-arrow-right-to-bracket"></i> {{localize "WANDERER.App.slotEssence"}}</button>
@@ -159,7 +159,7 @@
       <p class="hint">{{localize "WANDERER.App.noEssences"}}</p>
       {{/if}}
       <p class="hint small riders{{#if riders.any}} on{{/if}}"><strong>{{localize "WANDERER.App.riders"}}:</strong> {{riders.summary}} <span class="muted">— {{localize "WANDERER.App.ridersHint"}}</span></p>
-      <p class="hint small">{{#if essenceInstant}}{{localize "WANDERER.App.instantEssence"}}{{else}}{{localize "WANDERER.App.timedEssence"}}{{/if}}</p>
+      <p class="hint small">{{essenceHint}}</p>
       {{#if isOwner}}
       <div class="actions">
         <button type="button" data-action="disenchant"><i class="fas fa-fire"></i> {{localize "WANDERER.App.disenchant"}}</button>

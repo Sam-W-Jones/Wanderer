@@ -408,7 +408,7 @@ check(consumes(uc2b, slotItems().node3.id) && usesPer(slotItems().node3) === "sr
 
 /* ---------------- Disenchant, essences & riders ---------------- */
 console.log("\nDisenchant & riders");
-await game.settings.set("wanderer", "essenceInstant", true);
+check(game.settings.get("wanderer", "disenchantMinutes") === 30 && game.settings.get("wanderer", "essenceCraftingDays") === false, "disenchanting defaults to 30 minutes rather than crafting days");
 const [sword, dagger, plate, wand] = await actor.createEmbeddedDocuments("Item", [
   V4
     ? { name: "+2 Longsword", type: "weapon", img: "icons/sword.png", system: { rarity: "rare", ...attn(0), magicalBonus: 2, damage: { base: { number: 1, denomination: 8, bonus: "", types: ["slashing"] } }, activities: { act1: { _id: "act1", type: "attack", attack: { bonus: "" } } }, description: { value: "<p>Shiny.</p>" }, equipped: false }, effects: [{ name: "Glow", transfer: true, changes: [] }] }
@@ -425,7 +425,8 @@ check(api.slots.disenchantables(actor).length === 4, "four magic items disenchan
 
 const essSword = await api.slots.disenchantItem(actor, sword);
 check(!actor.items.get(sword.id) && essSword.type === "loot" && essSword.getFlag("wanderer", "essence").rider?.bonus === 2, "sword destroyed; essence records the +2 rider");
-await api.crafting.beginProject(actor, { slot: "node3", kind: "essence", essenceId: essSword.id });
+const setNow = await api.crafting.beginProject(actor, { slot: "node3", kind: "essence", essenceId: essSword.id });
+check(setNow?.complete === true && setNow.minutes === 30 && !api.crafting.getProject(actor) && chat.at(-1).includes("WANDERER.Chat.essenceSet") && /minutes\D{1,8}30/.test(chat.at(-1)), "disenchanting into a node is done at once and announced as 30 minutes");
 await api.riders.request(actor);
 let node3 = slotItems().node3;
 check(node3?.type === "weapon" && node3.flags.wanderer.kind === "essence" && attunedNow(node3) && node3.system.equipped === true, "instant essence slotted as the weapon, attuned and equipped");
@@ -435,7 +436,11 @@ check(node3?.effects?.length === 1, "original active effects preserved on the no
 check(riderEffects().length === 1 && riderEffects()[0].getFlag("wanderer", "bonus") === 2 && riderEffects()[0].changes.some(c => c.key === "system.bonuses.mwak.attack" && c.value === "+2"), "actor carries one weapon rider effect at +2");
 
 const essDagger = await api.slots.disenchantItem(actor, dagger);
+// A carving on the bench is not disturbed by disenchanting an item into another node
+await api.crafting.beginProject(actor, { slot: "node1", kind: "rune", runeId: "sure-footing" });
 await api.crafting.beginProject(actor, { slot: "node2", kind: "essence", essenceId: essDagger.id });
+check(api.crafting.getProject(actor)?.runeId === "sure-footing" && api.crafting.getProject(actor).daysDone === 0 && slotItems().node2?.flags?.wanderer?.kind === "essence" && slotItems().node1?.flags?.wanderer?.runeId === "titans-grip", "disenchanting into a node leaves the carving on the bench untouched");
+await api.crafting.abandonProject(actor, { ask: false });
 await api.riders.request(actor);
 check(riderEffects().length === 1 && riderEffects()[0].getFlag("wanderer", "bonus") === 2, "a second +1 weapon does not stack: rider stays +2");
 
@@ -460,7 +465,7 @@ await api.riders.request(actor);
 check(slotItems().node3?.flags?.wanderer?.runeId === "hurl", "finished project replaces the slotted essence");
 check(api.slots.essences(actor).some(e => e.getFlag("wanderer", "essence").sourceName === "+1 Breastplate"), "replaced essence returns to the inventory");
 check(riderEffects().length === 1 && riderEffects()[0].getFlag("wanderer", "rider") === "weapon", "armor rider removed with its node");
-await game.settings.set("wanderer", "essenceInstant", false);
+await game.settings.set("wanderer", "essenceCraftingDays", true);
 
 // Disenchanting one of a stack leaves the rest
 const [potions] = await actor.createEmbeddedDocuments("Item", [{ name: "Potion of Healing", type: "consumable", system: { rarity: "common", quantity: 3 } }]);
@@ -469,11 +474,14 @@ check(actor.items.get(potions.id)?.system.quantity === 2 && essPotion.getFlag("w
 await essPotion.delete();
 await potions.delete();
 
-// Timed essence
+// Opt-in: essences take the crafting days of their rarity and queue as a project
 const essWand = await api.slots.disenchantItem(actor, wand);
 p = await api.crafting.beginProject(actor, { slot: "node3", kind: "essence", essenceId: essWand.id });
-check(p?.daysRequired === 10 && slotItems().node3?.flags?.wanderer?.runeId === "hurl", "timed essence project queued; Hurl stays until it is done");
-await api.crafting.abandonProject(actor, { ask: false });
+check(p?.daysRequired === 10 && api.crafting.getProject(actor)?.essenceId === essWand.id && slotItems().node3?.flags?.wanderer?.runeId === "hurl", "with crafting days on, an essence is queued as a project; Hurl stays until it is done");
+await game.settings.set("wanderer", "essenceCraftingDays", false);
+// Back on minutes: setting that same essence directly drops the project that was waiting on it
+await api.crafting.beginProject(actor, { slot: "node3", kind: "essence", essenceId: essWand.id });
+check(!api.crafting.getProject(actor) && slotItems().node3?.flags?.wanderer?.kind === "essence" && slotItems().node3.flags.wanderer.sourceName === "Wand of Magic Missiles", "setting a queued essence directly clears the project that was waiting on it");
 
 /* ---------------- Core ---------------- */
 console.log("\nCore");
@@ -607,6 +615,7 @@ const pd = await picker.getData();
 check(pd.groups.length === 3 && pd.groups[0].runes.every(r => r.packUuid?.startsWith("Compendium.wanderer.runes.Item.")), "picker rows link to the compendium");
 check(pd.groups[0].runes.find(r => r.id === "titans-grip")?.taken === true && pd.groups[0].runes.find(r => r.id === "titans-grip").carvedLabel.includes("Node I"), "picker marks the carved rune with its node");
 check(data.slots.find(s => s.id === "node1").item?.usesLabel === "" && data.project.daysLeft >= 0, "inspect shows no uses for a passive rune; bench computes days left");
+check(data.essences.length > 0 && data.essences.every(e => e.minutes === 30 && e.days === 0 && e.timeLabel.includes("WANDERER.Picker.minutes")) && data.essenceHint.includes("minutesEssence") && pd.essences.length > 0 && pd.essences.every(e => e.timeShort.includes("minutesShort")), "the bench and the picker state the 30-minute disenchanting time");
 const ld = await new api.apps.RuneLibraryEditor().getData();
 check(ld.groups.flatMap(g => g.runes).length === 59, "library editor lists all runes");
 

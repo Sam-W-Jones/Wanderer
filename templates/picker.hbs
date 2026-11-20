@@ -48,7 +48,7 @@
         </div>
         <div class="rune-actions">
           {{#if @root.isOwner}}
-          <button type="button" data-action="slot-essence"><i class="fas fa-arrow-right-to-bracket"></i> {{localize "WANDERER.Picker.slot"}} <small>{{#if days}}{{days}}d{{else}}{{localize "WANDERER.Picker.instant"}}{{/if}}</small></button>
+          <button type="button" data-action="slot-essence"><i class="fas fa-arrow-right-to-bracket"></i> {{localize "WANDERER.Picker.slot"}} <small>{{timeShort}}</small></button>
           {{/if}}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { MODULE_ID, TEMPLATES } from "../constants.mjs";
-import { getDaysFor, essencesInstant, slotLabel } from "../settings.mjs";
+import { getDaysFor, essenceTime, slotLabel } from "../settings.mjs";
 import { getRuneLibrary, getRune } from "../library.mjs";
 import { getEssences, slottedRuneIds, getSlotItems } from "../model.mjs";
 import { beginProject, runeAvailability } from "../crafting.mjs";
@@ -74,7 +74,7 @@ export class RunePicker extends Application {
       return {
         id: e.id, name: f.sourceName || e.name, img: f.sourceImg || e.img,
         rarity, rarityLabel: rarityLabel(rarity),
-        days: essencesInstant() ? 0 : getDaysFor(rarity)
+        timeShort: essenceTime(rarity || "uncommon").short
       };
     });
 
@@ -83,7 +83,6 @@ export class RunePicker extends Application {
       slotLabel: slotLabel(this.slot),
       groups,
       essences,
-      essenceInstant: essencesInstant(),
       isOwner: this.actor.isOwner
     };
   }
